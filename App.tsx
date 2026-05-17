@@ -324,9 +324,6 @@ const App: React.FC = () => {
 
                 <Features />
                 <FAQ />
-
-                <Features />
-                <FAQ />
               </div>
             )}
 
