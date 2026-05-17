@@ -25,6 +25,7 @@ const App: React.FC = () => {
   const [credits, setCredits] = useState<number>(0);
   const [loadingCredits, setLoadingCredits] = useState(false);
   const [session, setSession] = useState<any>(null);
+  const [pastAnalyses, setPastAnalyses] = useState<any[]>([]);
   const [currentView, setCurrentView] = useState<'home' | 'login' | 'register' | 'pricing'>('home');
 
   // Kullanıcı oturumunu ve Supabase'den kredilerini çek
@@ -32,7 +33,10 @@ const App: React.FC = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setIsAuthenticated(!!session);
-      if (session?.user) fetchCredits(session.user.id);
+      if (session?.user) {
+        fetchCredits(session.user.id);
+        fetchPastAnalyses(session.user.id);
+      }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -40,6 +44,7 @@ const App: React.FC = () => {
       setIsAuthenticated(!!session);
       if (session?.user) {
         fetchCredits(session.user.id);
+        fetchPastAnalyses(session.user.id);
       } else {
         setCredits(0);
       }
@@ -65,6 +70,16 @@ const App: React.FC = () => {
     } finally {
       setLoadingCredits(false);
     }
+  };
+
+  const fetchPastAnalyses = async (userId: string) => {
+  const { data } = await supabase
+    .from('site_analyses')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(5);
+    if (data) setPastAnalyses(data);
   };
 
   const deductCredit = async () => {
@@ -289,6 +304,26 @@ const App: React.FC = () => {
                     </button>
                   </form>
                 </div>
+
+                {pastAnalyses.length > 0 && (
+                  <div className="glass p-6 rounded-2xl max-w-2xl mx-auto">
+                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Geçmiş Analizleriniz</h3>
+                    <div className="space-y-3">
+                      {pastAnalyses.map((a, i) => (
+                        <div key={i} className="flex justify-between items-center p-3 bg-slate-800/50 rounded-xl">
+                          <div>
+                            <p className="font-medium text-sm">{a.url}</p>
+                            <p className="text-xs text-slate-400">{new Date(a.created_at).toLocaleDateString('tr-TR')}</p>
+                          </div>
+                          <div className="text-cyan-400 font-bold text-lg">{a.brand_score}/100</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <Features />
+                <FAQ />
 
                 <Features />
                 <FAQ />
