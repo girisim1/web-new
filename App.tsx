@@ -24,16 +24,19 @@ const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [credits, setCredits] = useState<number>(0);
   const [loadingCredits, setLoadingCredits] = useState(false);
+  const [session, setSession] = useState<any>(null);
   const [currentView, setCurrentView] = useState<'home' | 'login' | 'register' | 'pricing'>('home');
 
   // Kullanıcı oturumunu ve Supabase'den kredilerini çek
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
       setIsAuthenticated(!!session);
       if (session?.user) fetchCredits(session.user.id);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
       setIsAuthenticated(!!session);
       if (session?.user) {
         fetchCredits(session.user.id);
