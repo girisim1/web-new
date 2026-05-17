@@ -115,7 +115,7 @@ const App: React.FC = () => {
       const t2 = setTimeout(() => setLoadingMsg('Gemini AI ile GEO skoru hesaplanıyor...'), 5000);
       const t3 = setTimeout(() => setLoadingMsg('E-E-A-T metrikleri değerlendiriliyor...'), 8000);
 
-      const analysis = await analyzeBrandVisibility(brandName, url);
+      const analysis = await analyzeBrandVisibility(brandName, url, session?.user?.id);
       clearTimeout(t1); clearTimeout(t2); clearTimeout(t3);
 
       // Kredi düş ve analizi kaydet

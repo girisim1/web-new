@@ -12,7 +12,7 @@ export default async function handler(request: any, response: any) {
     return response.status(405).json({ error: 'Method not allowed. Use POST.' });
   }
 
-  const { brandName, url } = request.body || {};
+  const { brandName, url, userId } = request.body || {};
 
   if (!brandName || !url) {
     return response.status(400).json({ error: 'Missing brandName or url in request body.' });
@@ -79,7 +79,8 @@ Sadece JSON döndür, başka bir şey yazma.
         brand_score: data.score?.overall || 0,
         ai_readiness_score: data.score?.visibility || 0,
         recommendations: data.recommendations || [],
-        raw_analysis: data
+        raw_analysis: data,
+        user_id: userId || null
       });
     } catch (e) {
       console.warn('Supabase kayıt hatası:', e);
