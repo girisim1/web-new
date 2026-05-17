@@ -1,5 +1,10 @@
 import OpenAI from "openai";
+import { createClient } from '@supabase/supabase-js';
 
+const supabase = createClient(
+  process.env.MY_SUPABASE_URL!,
+  process.env.MY_SUPABASE_SERVICE_KEY!
+);
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || '' });
 
 export default async function handler(request: any, response: any) {
@@ -66,6 +71,20 @@ Sadece JSON döndür, başka bir şey yazma.
     });
 
     const data = JSON.parse(result.choices[0].message.content || '{}');
+
+    try {
+      await supabase.from('site_analyses').insert({
+        url: url,
+        ai_model: 'gpt-4o-mini',
+        brand_score: data.score?.overall || 0,
+        ai_readiness_score: data.score?.visibility || 0,
+        recommendations: data.recommendations || [],
+        raw_analysis: data
+      });
+    } catch (e) {
+      console.warn('Supabase kayıt hatası:', e);
+    }
+
     return response.status(200).json(data);
   } catch (error: any) {
     console.error('API Error:', error);
