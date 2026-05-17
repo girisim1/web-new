@@ -26,6 +26,7 @@ const App: React.FC = () => {
   const [loadingCredits, setLoadingCredits] = useState(false);
   const [session, setSession] = useState<any>(null);
   const [pastAnalyses, setPastAnalyses] = useState<any[]>([]);
+  const [selectedUrl, setSelectedUrl] = useState<string | null>(null);
   const [currentView, setCurrentView] = useState<'home' | 'login' | 'register' | 'pricing'>('home');
 
   // Kullanıcı oturumunu ve Supabase'den kredilerini çek
@@ -306,25 +307,36 @@ const App: React.FC = () => {
                 </div>
 
                 {pastAnalyses.length > 0 && (
-                  <div className="glass p-6 rounded-2xl max-w-2xl mx-auto">
-                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Geçmiş Analizleriniz</h3>
-                    <div className="space-y-3">
-                      {pastAnalyses.map((a, i) => (
-                        <div 
-                          key={i} 
-                          className="flex justify-between items-center p-3 bg-slate-800/50 rounded-xl cursor-pointer hover:bg-slate-700/50 transition-colors"
-                          onClick={() => {
-                            setResult(a.raw_analysis);
-                            setStep(Step.RESULT);
-                          }}
-                        >
-                          <div>
-                            <p className="font-medium text-sm">{a.url}</p>
-                            <p className="text-xs text-slate-400">{new Date(a.created_at).toLocaleDateString('tr-TR')}</p>
+                    <div className="glass p-6 rounded-2xl max-w-2xl mx-auto">
+                      <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Geçmiş Analizleriniz</h3>
+                      <div className="space-y-3">
+                        {pastAnalyses.map((a, i) => {
+                          const prev = pastAnalyses[i + 1];
+                          const trend = prev ? a.brand_score - prev.brand_score : null;
+                          return (
+                            <div
+                              key={i}
+                              className="flex justify-between items-center p-3 bg-slate-800/50 rounded-xl cursor-pointer hover:bg-slate-700/50 transition-colors"
+                              onClick={() => {
+                                setResult(a.raw_analysis);
+                                setStep(Step.RESULT);
+                              }}
+                          >
+                            <div>
+                              <p className="font-medium text-sm">{a.url}</p>
+                              <p className="text-xs text-slate-400">{new Date(a.created_at).toLocaleDateString('tr-TR')}</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {trend !== null && (
+                                <span className={`text-xs font-bold ${trend > 0 ? 'text-emerald-400' : trend < 0 ? 'text-red-400' : 'text-slate-400'}`}>
+                                  {trend > 0 ? `↑ +${trend}` : trend < 0 ? `↓ ${trend}` : '→ 0'}
+                                </span>
+                              )}
+                              <div className="text-cyan-400 font-bold text-lg">{a.brand_score}/100</div>
+                            </div>
                           </div>
-                          <div className="text-cyan-400 font-bold text-lg">{a.brand_score}/100</div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
