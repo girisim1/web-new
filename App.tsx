@@ -27,6 +27,9 @@ const App: React.FC = () => {
   const [session, setSession] = useState<any>(null);
   const [pastAnalyses, setPastAnalyses] = useState<any[]>([]);
   const [selectedUrl, setSelectedUrl] = useState<string | null>(null);
+  const [hasFullAccess, setHasFullAccess] = useState(false);
+  const [keyInput, setKeyInput] = useState('');
+  const [keyError, setKeyError] = useState('');
   const [currentView, setCurrentView] = useState<'home' | 'login' | 'register' | 'pricing'>('home');
 
   // Kullanıcı oturumunu ve Supabase'den kredilerini çek
@@ -73,7 +76,41 @@ const App: React.FC = () => {
     }
   };
 
+  const fetchPastAnalyses = async (userId: string) => { 
+    const { data } = await supabase
+      .from('site_analyses')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(5);
+      if (data) setPastAnalyses(data);
+  };
+
   const fetchPastAnalyses = async (userId: string) => {
+  const validateKey = async () => {
+  if (!keyInput.trim()) return;
+  
+  const { data, error } = await supabase
+    .from('access_keys')
+    .select('*')
+    .eq('key', keyInput.trim())
+    .eq('used', false)
+    .single();
+
+  if (error || !data) {
+    setKeyError('Geçersiz veya kullanılmış key.');
+    return;
+  }
+
+  // Key'i kullanılmış olarak işaretle
+  await supabase
+    .from('access_keys')
+    .update({ used: true, used_by: session?.user?.id })
+    .eq('id', data.id);
+
+  setHasFullAccess(true);
+  setKeyError('');
+};
   const { data } = await supabase
     .from('site_analyses')
     .select('*')
@@ -405,6 +442,8 @@ const App: React.FC = () => {
                   </div>
                 </div>
 
+                {hasFullAccess ? (
+                <>
                 {/* Rakipler + Analiz edilen içerik */}
                 <div className="grid md:grid-cols-2 gap-8">
                   {result.competitors && result.competitors.length > 0 && (
@@ -481,6 +520,37 @@ const App: React.FC = () => {
                     </button>
                   </div>
                 </div>
+                </>
+                ) : (
+                  <div className="relative mt-8">
+                    <div className="blur-sm pointer-events-none select-none opacity-40 space-y-8">
+                      <div className="glass p-8 rounded-3xl h-40"></div>
+                      <div className="glass p-8 rounded-3xl h-40"></div>
+                      <div className="glass p-8 rounded-3xl h-40"></div>
+                    </div>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/80 rounded-3xl z-10 p-8 text-center space-y-4">
+                      <ShieldCheck className="w-12 h-12 text-cyan-400" />
+                      <h3 className="text-xl font-bold">Tam Raporu Görmek İçin Key Girin</h3>
+                      <p className="text-slate-400 text-sm">Size özel erişim keyinizi girerek tüm analiz detaylarına ulaşın.</p>
+                      <div className="flex gap-2 w-full max-w-sm">
+                        <input
+                          type="text"
+                          placeholder="Key girin..."
+                          className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-cyan-500"
+                          value={keyInput}
+                          onChange={(e) => setKeyInput(e.target.value)}
+                        />
+                        <button
+                          onClick={validateKey}
+                          className="bg-cyan-500 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-cyan-400"
+                        >
+                          Gir
+                        </button>
+                      </div>
+                      {keyError && <p className="text-red-400 text-sm">{keyError}</p>}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </>
