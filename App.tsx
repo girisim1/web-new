@@ -111,14 +111,6 @@ const App: React.FC = () => {
   setHasFullAccess(true);
   setKeyError('');
 };
-  const { data } = await supabase
-    .from('site_analyses')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .limit(5);
-    if (data) setPastAnalyses(data);
-  };
 
   const deductCredit = async () => {
     const { data: { session } } = await supabase.auth.getSession();
