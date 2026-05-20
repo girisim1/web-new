@@ -86,7 +86,7 @@ const App: React.FC = () => {
       if (data) setPastAnalyses(data);
   };
 
-  const fetchPastAnalyses = async (userId: string) => {
+ 
   const validateKey = async () => {
   if (!keyInput.trim()) return;
   
