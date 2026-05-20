@@ -157,11 +157,11 @@ const App: React.FC = () => {
       setCurrentView('login');
       return;
     }
-
+    /*
     if (credits <= 0) {
       setCurrentView('pricing');
       return;
-    }
+    }*/
 
     setStep(Step.ANALYZING);
     setLoadingMsg('Site içeriği taranıyor...');
