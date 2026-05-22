@@ -38,6 +38,15 @@ Marka: ${brandName}
 URL: ${url}
 Site içeriği: ${pageContent || 'Çekilemedi'}
 
+ÖNEMLİ: Öneriler ve eksikler MUTLAKA spesifik ve uygulanabilir olmalı.
+Genel tavsiyeler YASAK. Her öneri şu formatta olmalı:
+- Ne değiştirilmeli (tam olarak)
+- Neden (AI'a etkisi)
+- Nasıl (kısa teknik adım)
+
+Örnek DOĞRU öneri: "H1 başlığınızı 'Hizmetlerimiz' yerine 'Ankara Boşanma Avukatı | 20 Yıllık Deneyim' yapın — ChatGPT coğrafi sorgularda sizi %40 daha sık önerir"
+Örnek YANLIŞ öneri: "Sosyal medyaya önem verin"
+
 Aşağıdaki JSON formatında analiz yap:
 {
   "brandName": "${brandName}",
@@ -53,10 +62,21 @@ Aşağıdaki JSON formatında analiz yap:
     "schemaMarkup": 0-100,
     "contentQuality": 0-100
   },
-  "summary": "Türkçe 2-3 cümle",
-  "chatGptPerception": "Türkçe 2 cümle",
-  "weaknesses": ["madde1", "madde2", "madde3", "madde4"],
-  "recommendations": ["öneri1", "öneri2", "öneri3", "öneri4", "öneri5"],
+  "summary": "Türkçe 2-3 cümle — AI modellerinin bu siteyi nasıl gördüğü",
+  "chatGptPerception": "ChatGPT bu sektörde en iyi kim diye sorulsa bu markayı nasıl değerlendirir? 2 cümle Türkçe",
+  "weaknesses": [
+    "Spesifik eksiklik 1 — örn: Schema.org/LegalService markup eksik, ChatGPT sizi hukuk bürosu olarak tanımıyor",
+    "Spesifik eksiklik 2",
+    "Spesifik eksiklik 3",
+    "Spesifik eksiklik 4"
+  ],
+  "recommendations": [
+    "Spesifik öneri 1 — ne yapılacak + neden + nasıl",
+    "Spesifik öneri 2",
+    "Spesifik öneri 3",
+    "Spesifik öneri 4",
+    "Spesifik öneri 5"
+  ],
   "competitors": ["rakip1", "rakip2", "rakip3"],
   "analyzedPageContent": "Türkçe 1 cümle özet"
 }
