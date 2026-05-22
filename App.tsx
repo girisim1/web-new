@@ -68,6 +68,7 @@ const App: React.FC = () => {
 
       if (!error && data) {
         setCredits(data.credits ?? 0);
+        if ((data.credits ?? 0) >= 5) setHasFullAccess(true);
       }
     } catch (e) {
       console.error('Kredi bilgisi alınamadı:', e);
