@@ -505,6 +505,37 @@ const App: React.FC = () => {
                       ))}
                     </ul>
                   </div>
+                  {result.generatedSchema && (
+                    <div className="glass p-8 rounded-3xl">
+                      <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                        <Zap className="text-cyan-400" /> Hazır Schema.org Kodu
+                      </h3>
+                      <p className="text-slate-400 text-sm mb-3">Bu kodu web sitenizin &lt;head&gt; bölümüne yapıştırın. AI modelleri sitenizi daha iyi tanıyacak.</p>
+                      <pre className="bg-slate-900 p-4 rounded-xl text-xs text-emerald-300 overflow-x-auto max-h-64 overflow-y-auto whitespace-pre-wrap">{result.generatedSchema}</pre>
+                      <button
+                        onClick={() => navigator.clipboard.writeText(result.generatedSchema)}
+                        className="mt-3 bg-cyan-500 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-cyan-400"
+                      >
+                        Kodu Kopyala
+                      </button>
+                    </div>
+                  )}
+
+                  {result.generatedLlmsTxt && (
+                    <div className="glass p-8 rounded-3xl">
+                      <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                        <Globe className="text-purple-400" /> Hazır llms.txt Dosyası
+                      </h3>
+                      <p className="text-slate-400 text-sm mb-3">Bu içeriği sitenizin kök dizinine "llms.txt" olarak ekleyin. AI crawler'lar markanızı doğru okuyacak.</p>
+                      <pre className="bg-slate-900 p-4 rounded-xl text-xs text-purple-300 overflow-x-auto max-h-64 overflow-y-auto whitespace-pre-wrap">{result.generatedLlmsTxt}</pre>
+                      <button
+                        onClick={() => navigator.clipboard.writeText(result.generatedLlmsTxt)}
+                        className="mt-3 bg-purple-500 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-purple-400"
+                      >
+                        İçeriği Kopyala
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* CTA bölümü */}
