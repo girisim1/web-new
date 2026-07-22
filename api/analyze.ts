@@ -80,7 +80,9 @@ Aşağıdaki JSON formatında analiz yap:
     "Spesifik öneri 5"
   ],
   "competitors": ["rakip1", "rakip2", "rakip3"],
-  "analyzedPageContent": "Türkçe 1 cümle özet"
+  "analyzedPageContent": "Türkçe 1 cümle özet",
+  "generatedSchema": "Bu site için schema.org JSON-LD markup kodu üret. Sitenin türüne uygun (LegalService, LocalBusiness, Organization vb.) tam ve geçerli bir JSON-LD kodu olsun. Sadece kod, açıklama yok.",
+  "generatedLlmsTxt": "Bu site için llms.txt dosya içeriği üret. Markanın adı, ne yaptığı, ana sayfaları ve önemli bilgileri içeren, AI crawler'ların okuyacağı düz metin formatında bir llms.txt içeriği."
 }
 Sadece JSON döndür, başka bir şey yazma.
 `;
