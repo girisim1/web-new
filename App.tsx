@@ -405,6 +405,18 @@ const App: React.FC = () => {
                   <div className="bg-cyan-500/10 border border-cyan-500/30 px-6 py-4 rounded-2xl text-center">
                     <p className="text-xs text-cyan-400 uppercase font-bold tracking-widest mb-1">Genel AI Skoru</p>
                     <p className="text-5xl font-black text-white">{result.score.overall}<span className="text-xl text-cyan-400">/100</span></p>
+                    {result.modelScores && (
+                      <div className="flex gap-3 justify-center mt-3 pt-3 border-t border-cyan-500/20">
+                        <div className="text-center">
+                          <p className="text-[10px] text-slate-400 uppercase">ChatGPT</p>
+                          <p className="text-lg font-bold text-emerald-400">{result.modelScores.openai}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-[10px] text-slate-400 uppercase">Llama 3</p>
+                          <p className="text-lg font-bold text-purple-400">{result.modelScores.llama}</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
