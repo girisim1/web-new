@@ -1,11 +1,13 @@
 import OpenAI from "openai";
 import { createClient } from '@supabase/supabase-js';
+import Groq from "groq-sdk";
 
 const supabase = createClient(
   process.env.MY_SUPABASE_URL!,
   process.env.MY_SUPABASE_SERVICE_KEY!
 );
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || '' });
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || '' });
 
 export default async function handler(request: any, response: any) {
   if (request.method !== 'POST') {
@@ -91,6 +93,28 @@ Sadece JSON döndür, başka bir şey yazma.
     });
 
     const data = JSON.parse(result.choices[0].message.content || '{}');
+
+    let groqScore = null;
+    try {
+      const groqResult = await groq.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
+        messages: [{ role: 'user', content: prompt }],
+        response_format: { type: 'json_object' }
+      });
+      const groqData = JSON.parse(groqResult.choices[0].message.content || '{}');
+      groqScore = groqData.score?.overall || null;
+    } catch (e) {
+      console.warn('Groq analizi başarısız:', e);
+    }
+     // İki modelin ortalamasını al (Groq çalıştıysa)
+    if (groqScore !== null && data.score) {
+      const openaiScore = data.score.overall;
+      data.score.overall = Math.round((openaiScore + groqScore) / 2);
+      data.modelScores = {
+        openai: openaiScore,
+        llama: groqScore
+      };
+    }
 
     try {
       await supabase.from('site_analyses').insert({
