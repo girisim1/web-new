@@ -14,7 +14,7 @@ export default async function handler(request: any, response: any) {
     return response.status(405).json({ error: 'Method not allowed. Use POST.' });
   }
 
-  const { brandName, url, userId } = request.body || {};
+const { brandName, url, userId, sector } = request.body || {};
 
   if (!brandName || !url) {
     return response.status(400).json({ error: 'Missing brandName or url in request body.' });
@@ -34,6 +34,47 @@ export default async function handler(request: any, response: any) {
     console.warn('Site fetch failed');
   }
 
+  // ===== İKİNCİ ANALİZ: Rekabet + Kriter + Sinyal =====
+  const competitionPrompt = `
+Sen bir pazar ve rekabet analistisin.
+Marka: ${brandName}
+Sektör: ${sector || 'Genel'}
+URL: ${url}
+
+Bu markanın sektöründeki AI görünürlük rekabetini analiz et. GERÇEKÇİ ol — bu sektördeki gerçek rakip markaları kullan.
+
+Aşağıdaki JSON formatında yanıt ver:
+{
+  "ranking": [
+    {"brand": "Gerçek rakip marka adı", "score": 0-100, "trend": "+2 veya -1 gibi", "me": false},
+    {"brand": "${brandName}", "score": 0-100, "trend": "+3", "me": true}
+  ],
+  "reasons": [
+    {"type": "bad", "title": "Kısa başlık", "desc": "Bu marka neden rakiplerinin gerisinde — spesifik teknik/içerik sebebi, 1-2 cümle"},
+    {"type": "bad", "title": "Kısa başlık", "desc": "İkinci sebep"},
+    {"type": "good", "title": "Kısa başlık", "desc": "Bu markanın güçlü olduğu bir yön"}
+  ],
+  "criteria": [
+    {"name": "Kriter adı (örn: Fiyat/Performans)", "val": 0-100},
+    {"name": "İkinci kriter", "val": 0-100},
+    {"name": "Üçüncü kriter", "val": 0-100},
+    {"name": "Dördüncü kriter", "val": 0-100}
+  ],
+  "signals": [
+    {"title": "Pozitif yorum oranı", "val": "%XX", "color": "#22c55e"},
+    {"title": "En çok geçen kelime", "val": "kelime", "color": "#22d3ee"},
+    {"title": "Şikayet konusu", "val": "konu", "color": "#ef4444"},
+    {"title": "AI önerme oranı", "val": "5 sorgudan X'inde", "color": "#a855f7"}
+  ]
+}
+
+KURALLAR:
+- ranking listesinde markayı gerçek rakiplerinin arasına doğru skorla yerleştir (5-6 marka)
+- ranking'i skora göre büyükten küçüğe sırala
+- criteria: bu sektörde müşterilerin/AI'ların önem verdiği gerçek kriterler
+- signals: gerçekçi tahminler
+Sadece JSON döndür, başka bir şey yazma.
+`;
   const prompt = `
 Sen GEO (Generative Engine Optimization) analistisisin.
 Marka: ${brandName}
@@ -95,7 +136,27 @@ Sadece JSON döndür, başka bir şey yazma.
     });
 
     const data = JSON.parse(result.choices[0].message.content || '{}');
-
+    // ===== İKİNCİ ANALİZ ÇAĞRISI: Rekabet analizi =====
+    try {
+      const competitionResult = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: competitionPrompt }],
+        response_format: { type: 'json_object' }
+      });
+      const competitionData = JSON.parse(competitionResult.choices[0].message.content || '{}');
+      
+      // Rekabet verisini ana sonuca ekle
+      data.ranking = competitionData.ranking || [];
+      data.reasons = competitionData.reasons || [];
+      data.criteria = competitionData.criteria || [];
+      data.signals = competitionData.signals || [];
+    } catch (e) {
+      console.warn('Rekabet analizi başarısız:', e);
+      data.ranking = [];
+      data.reasons = [];
+      data.criteria = [];
+      data.signals = [];
+    }
     let groqScore = null;
     try {
       const groqResult = await groq.chat.completions.create({
@@ -130,6 +191,33 @@ Sadece JSON döndür, başka bir şey yazma.
       });
     } catch (e) {
       console.warn('Supabase kayıt hatası:', e);
+    }
+
+    // ===== BORSA GEÇMİŞİNE SKOR KAYDET =====
+    try {
+      await supabase.from('brand_score_history').insert({
+        brand_name: brandName,
+        sector: sector || null,
+        score: data.score?.overall || 0,
+        user_id: userId || null
+      });
+    } catch (e) {
+      console.warn('Borsa geçmişi kayıt hatası:', e);
+    }
+
+    // ===== BORSA GEÇMİŞİNİ ÇEK (son 7 kayıt) =====
+    try {
+      const { data: history } = await supabase
+        .from('brand_score_history')
+        .select('score, recorded_at')
+        .eq('brand_name', brandName)
+        .order('recorded_at', { ascending: true })
+        .limit(30);
+      
+      data.scoreHistory = history || [];
+    } catch (e) {
+      console.warn('Borsa geçmişi okuma hatası:', e);
+      data.scoreHistory = [];
     }
 
     return response.status(200).json(data);
