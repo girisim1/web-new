@@ -16,6 +16,7 @@ const ScoreChart = lazy(() => import('./components/ScoreChart'));
 
 const App: React.FC = () => {
   const [brandName, setBrandName] = useState('');
+  const [sector, setSector] = useState('Genel');
   const [url, setUrl] = useState('');
   const [step, setStep] = useState<Step>(Step.INPUT);
   const [result, setResult] = useState<AnalysisResult | null>(null);
@@ -327,6 +328,30 @@ const App: React.FC = () => {
                         />
                       </div>
                     </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-slate-300 ml-1">Sektör</label>
+                      <div className="relative">
+                        <Target className="absolute left-4 top-3.5 w-5 h-5 text-slate-500" />
+                        <select
+                          className="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3.5 pl-12 pr-4 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all appearance-none"
+                          value={sector}
+                          onChange={(e) => setSector(e.target.value)}
+                        >
+                          <option value="Genel">Sektör Seçin (Genel)</option>
+                          <option value="Otomotiv">Otomotiv</option>
+                          <option value="E-ticaret">E-ticaret</option>
+                          <option value="Hukuk">Hukuk</option>
+                          <option value="Sağlık">Sağlık</option>
+                          <option value="Teknoloji / Yazılım">Teknoloji / Yazılım</option>
+                          <option value="Eğitim">Eğitim</option>
+                          <option value="Gıda / Restoran">Gıda / Restoran</option>
+                          <option value="Turizm / Otel">Turizm / Otel</option>
+                          <option value="Finans / Bankacılık">Finans / Bankacılık</option>
+                          <option value="Gayrimenkul">Gayrimenkul</option>
+                          <option value="Güzellik / Kozmetik">Güzellik / Kozmetik</option>
+                        </select>
+                      </div>
+                    </div>
                     <button
                       type="submit"
                       className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold py-4 rounded-xl hover:shadow-lg hover:shadow-cyan-500/30 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
@@ -534,6 +559,91 @@ const App: React.FC = () => {
                       >
                         İçeriği Kopyala
                       </button>
+                    </div>
+                  )}
+                     {/* ===== BORSA TAKİBİ ===== */}
+                  {result.scoreHistory && result.scoreHistory.length > 0 && (
+                    <div className="glass p-8 rounded-3xl">
+                      <h3 className="text-xl font-bold mb-2 flex items-center gap-2">📈 AI Görünürlük Takibi</h3>
+                      <p className="text-slate-400 text-sm mb-4">Markanızın skorunun zaman içindeki değişimi</p>
+                      <div className="flex items-end gap-2 h-40">
+                        {result.scoreHistory.map((h, i) => (
+                          <div key={i} className="flex-1 flex flex-col items-center justify-end h-full">
+                            <span className="text-xs text-cyan-400 mb-1">{h.score}</span>
+                            <div className="w-full bg-gradient-to-t from-cyan-500 to-purple-500 rounded-t" style={{height: `${h.score}%`}}></div>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-slate-500 text-xs mt-2 text-center">Her analiz kaydedilir — grafik zamanla dolar</p>
+                    </div>
+                  )}
+
+                  {/* ===== SEKTÖR SIRALAMASI ===== */}
+                  {result.ranking && result.ranking.length > 0 && (
+                    <div className="glass p-8 rounded-3xl">
+                      <h3 className="text-xl font-bold mb-4 flex items-center gap-2">🏆 Sektör Sıralaması</h3>
+                      <div className="space-y-2">
+                        {result.ranking.map((r, i) => (
+                          <div key={i} className={`flex items-center justify-between p-3 rounded-xl ${r.me ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-500/50' : 'bg-slate-900/50'}`}>
+                            <div className="flex items-center gap-3">
+                              <span className={`w-8 h-8 flex items-center justify-center rounded-full font-bold ${i === 0 ? 'bg-yellow-500/30 text-yellow-400' : 'bg-slate-800 text-slate-300'}`}>{i + 1}</span>
+                              <span className="font-semibold">{r.brand} {r.me && <span className="text-cyan-400 text-sm">👈 SİZ</span>}</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <span className={r.trend?.startsWith('-') ? 'text-red-400 text-sm' : 'text-green-400 text-sm'}>{r.trend?.startsWith('-') ? '▼' : '▲'} {r.trend}</span>
+                              <span className="text-lg font-bold text-cyan-400">{r.score}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ===== NEDEN GERİDESİNİZ ===== */}
+                  {result.reasons && result.reasons.length > 0 && (
+                    <div className="glass p-8 rounded-3xl">
+                      <h3 className="text-xl font-bold mb-4 flex items-center gap-2">🔍 Neden Geridesiniz?</h3>
+                      <div className="space-y-3">
+                        {result.reasons.map((r, i) => (
+                          <div key={i} className={`p-4 rounded-xl bg-slate-900/50 border-l-4 ${r.type === 'good' ? 'border-green-500' : 'border-red-500'}`}>
+                            <p className="font-semibold text-sm mb-1">{r.type === 'good' ? '✅' : '❌'} {r.title}</p>
+                            <p className="text-slate-400 text-sm">{r.desc}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ===== MÜŞTERİLER NEYE BAKIYOR ===== */}
+                  {result.criteria && result.criteria.length > 0 && (
+                    <div className="glass p-8 rounded-3xl">
+                      <h3 className="text-xl font-bold mb-2 flex items-center gap-2">🎯 Müşteriler Neye Bakıyor?</h3>
+                      <p className="text-slate-400 text-sm mb-4">Bu sektörde AI'ların önem verdiği kriterler</p>
+                      <div className="space-y-3">
+                        {result.criteria.map((c, i) => (
+                          <div key={i}>
+                            <div className="flex justify-between text-sm mb-1"><span>{c.name}</span><span className="text-cyan-400">{c.val}%</span></div>
+                            <div className="bg-slate-800 h-2 rounded-full overflow-hidden">
+                              <div className="h-full bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full" style={{width: `${c.val}%`}}></div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ===== YORUM & BLOG SİNYALLERİ ===== */}
+                  {result.signals && result.signals.length > 0 && (
+                    <div className="glass p-8 rounded-3xl">
+                      <h3 className="text-xl font-bold mb-4 flex items-center gap-2">💬 Yorum & Blog Sinyalleri</h3>
+                      <div className="grid grid-cols-2 gap-3">
+                        {result.signals.map((s, i) => (
+                          <div key={i} className="p-4 rounded-xl bg-slate-900/50 flex flex-col">
+                            <span className="text-slate-400 text-xs mb-1">{s.title}</span>
+                            <span className="font-bold text-lg" style={{color: s.color}}>{s.val}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>

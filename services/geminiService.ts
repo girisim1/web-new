@@ -2,7 +2,7 @@ import { AnalysisResult } from "../types";
 
 // Dev ortamında da site içeriği GET edilerek Gemini'ye gönderilir.
 // Production'da ise Vercel Serverless Function (api/analyze.ts) kullanılır.
-export const analyzeBrandVisibility = async (brandName: string, url: string, userId?: string): Promise<AnalysisResult> => {
+export const analyzeBrandVisibility = async (brandName: string, url: string, userId?: string, sector?: string): Promise<AnalysisResult> => {
   if (false) {
     console.log("[Dev Mode] İstemci tarafı doğrudan analiz başlatılıyor...");
     const { GoogleGenAI, Type } = await import("@google/genai");
@@ -81,7 +81,7 @@ Bu marka ve URL hakkındaki bilgilerini ve sektörel bağlamı kullanarak şunla
   const res = await fetch('/api/analyze', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ brandName, url, userId }),
+    body: JSON.stringify({ brandName, url, userId, sector }),
   });
 
   if (!res.ok) {

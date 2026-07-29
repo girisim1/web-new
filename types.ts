@@ -21,6 +21,14 @@ export interface AnalysisResult {
   chatGptPerception: string;
   competitors: string[];
   analyzedPageContent: string;
+  modelScores?: { openai: number; llama: number };
+  generatedSchema?: string;
+  generatedLlmsTxt?: string;
+  ranking?: Array<{ brand: string; score: number; trend: string; me: boolean }>;
+  reasons?: Array<{ type: string; title: string; desc: string }>;
+  criteria?: Array<{ name: string; val: number }>;
+  signals?: Array<{ title: string; val: string; color: string }>;
+  scoreHistory?: Array<{ score: number; recorded_at: string }>;
 }
 
 export enum Step {
