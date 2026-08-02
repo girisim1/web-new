@@ -21,6 +21,7 @@ const App: React.FC = () => {
   const [step, setStep] = useState<Step>(Step.INPUT);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [loadingMsg, setLoadingMsg] = useState('Veriler taranıyor...');
+  const [adminLogs, setAdminLogs] = useState<any[]>([]);
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [credits, setCredits] = useState<number>(0);
@@ -31,7 +32,7 @@ const App: React.FC = () => {
   const [hasFullAccess, setHasFullAccess] = useState(false);
   const [keyInput, setKeyInput] = useState('');
   const [keyError, setKeyError] = useState('');
-  const [currentView, setCurrentView] = useState<'home' | 'login' | 'register' | 'pricing'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'login' | 'register' | 'pricing' | 'admin'>('home');
 
   // Kullanıcı oturumunu ve Supabase'den kredilerini çek
   useEffect(() => {
@@ -228,6 +229,21 @@ const App: React.FC = () => {
             </>
           ) : (
             <>
+            <button
+                onClick={async () => {
+                  setCurrentView('admin');
+                  const { data } = await supabase
+                    .from('api_logs')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(50);
+                  setAdminLogs(data || []);
+                }}
+                className="text-sm font-bold text-slate-300 hover:text-cyan-400 transition-colors hidden sm:block"
+                title="Admin Panel"
+              >
+                ⚙️ Admin
+              </button>
               <div
                 onClick={() => setCurrentView('pricing')}
                 className="flex items-center gap-2 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-full cursor-pointer transition-colors"
@@ -279,6 +295,64 @@ const App: React.FC = () => {
           <PricingView
             onSelectPlan={(plan) => { setCurrentView('home'); }}
           />
+        )}
+
+        {currentView === 'admin' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-3xl font-bold flex items-center gap-2">⚙️ Admin Panel</h2>
+                <p className="text-slate-400">Sistem durumu ve analiz kayıtları — sadece yöneticiler</p>
+              </div>
+              <button
+                onClick={async () => {
+                  const { data } = await supabase
+                    .from('api_logs')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(50);
+                  setAdminLogs(data || []);
+                }}
+                className="bg-cyan-500 text-white px-4 py-2 rounded-xl font-bold hover:bg-cyan-400"
+              >
+                Yenile
+              </button>
+            </div>
+
+            {adminLogs.length === 0 ? (
+              <div className="glass p-8 rounded-3xl text-center text-slate-400">
+                "Yenile" butonuna basarak kayıtları yükleyin
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {adminLogs.map((log, i) => (
+                  <div key={i} className="glass p-5 rounded-2xl">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <span className="font-bold text-lg">{log.brand_name}</span>
+                        <span className="text-slate-500 text-sm ml-2">{log.url}</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-cyan-400 font-bold text-xl">{log.final_score}/100</span>
+                        <p className="text-slate-500 text-xs">{log.duration_ms}ms · {new Date(log.created_at).toLocaleString('tr-TR')}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 flex-wrap">
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${log.openai_status === 'success' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                        OpenAI: {log.openai_status === 'success' ? '✓' : '✗ ' + (log.openai_error || 'hata')}
+                      </span>
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${log.groq_status === 'success' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                        Groq/Llama: {log.groq_status === 'success' ? '✓' : '✗ ' + (log.groq_error || 'hata')}
+                      </span>
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${log.competition_status === 'success' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                        Rekabet: {log.competition_status === 'success' ? '✓' : '✗ ' + (log.competition_error || 'hata')}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
 
         {currentView === 'home' && (
