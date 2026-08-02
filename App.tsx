@@ -610,9 +610,9 @@ const App: React.FC = () => {
                         <Zap className="text-cyan-400" /> Hazır Schema.org Kodu
                       </h3>
                       <p className="text-slate-400 text-sm mb-3">Bu kodu web sitenizin &lt;head&gt; bölümüne yapıştırın. AI modelleri sitenizi daha iyi tanıyacak.</p>
-                      <pre className="bg-slate-900 p-4 rounded-xl text-xs text-emerald-300 overflow-x-auto max-h-64 overflow-y-auto whitespace-pre-wrap">{result.generatedSchema}</pre>
+                      <pre className="bg-slate-900 p-4 rounded-xl text-xs text-emerald-300 overflow-x-auto max-h-64 overflow-y-auto whitespace-pre-wrap">{typeof result.generatedSchema === 'string' ? result.generatedSchema : JSON.stringify(result.generatedSchema, null, 2)}</pre>
                       <button
-                        onClick={() => navigator.clipboard.writeText(result.generatedSchema)}
+                        onClick={() => navigator.clipboard.writeText(typeof result.generatedSchema === 'string' ? result.generatedSchema : JSON.stringify(result.generatedSchema, null, 2))}
                         className="mt-3 bg-cyan-500 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-cyan-400"
                       >
                         Kodu Kopyala
@@ -626,9 +626,10 @@ const App: React.FC = () => {
                         <Globe className="text-purple-400" /> Hazır llms.txt Dosyası
                       </h3>
                       <p className="text-slate-400 text-sm mb-3">Bu içeriği sitenizin kök dizinine "llms.txt" olarak ekleyin. AI crawler'lar markanızı doğru okuyacak.</p>
-                      <pre className="bg-slate-900 p-4 rounded-xl text-xs text-purple-300 overflow-x-auto max-h-64 overflow-y-auto whitespace-pre-wrap">{result.generatedLlmsTxt}</pre>
+                      <pre className="bg-slate-900 p-4 rounded-xl text-xs text-purple-300 overflow-x-auto max-h-64 overflow-y-auto whitespace-pre-wrap">{typeof result.generatedLlmsTxt === 'string' ? result.generatedLlmsTxt : JSON.stringify(result.generatedLlmsTxt, null, 2)}</pre>
                       <button
-                        onClick={() => navigator.clipboard.writeText(result.generatedLlmsTxt)}
+                        onClick={() => navigator.clipboard.writeText(typeof result.generatedLlmsTxt === 'string' ? result.generatedLlmsTxt : JSON.stringify(result.generatedLlmsTxt, null, 2))}
+                        
                         className="mt-3 bg-purple-500 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-purple-400"
                       >
                         İçeriği Kopyala
