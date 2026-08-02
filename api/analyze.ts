@@ -20,6 +20,13 @@ const { brandName, url, userId, sector } = request.body || {};
     return response.status(400).json({ error: 'Missing brandName or url in request body.' });
   }
 
+  // ===== API DURUM TAKİBİ (admin panel için) =====
+  const startTime = Date.now();
+  const apiStatus = {
+    openai_status: 'pending', openai_error: '',
+    groq_status: 'pending', groq_error: '',
+    competition_status: 'pending', competition_error: ''
+  };
   let pageContent = '';
   try {
     const siteResponse = await fetch(url, {
@@ -136,6 +143,8 @@ Sadece JSON döndür, başka bir şey yazma.
     });
 
     const data = JSON.parse(result.choices[0].message.content || '{}');
+    apiStatus.openai_status = 'success';
+    
     // ===== İKİNCİ ANALİZ ÇAĞRISI: Rekabet analizi =====
     try {
       const competitionResult = await openai.chat.completions.create({
@@ -145,17 +154,19 @@ Sadece JSON döndür, başka bir şey yazma.
       });
       const competitionData = JSON.parse(competitionResult.choices[0].message.content || '{}');
       
-      // Rekabet verisini ana sonuca ekle
       data.ranking = competitionData.ranking || [];
       data.reasons = competitionData.reasons || [];
       data.criteria = competitionData.criteria || [];
       data.signals = competitionData.signals || [];
-    } catch (e) {
+      apiStatus.competition_status = 'success';
+    } catch (e: any) {
       console.warn('Rekabet analizi başarısız:', e);
       data.ranking = [];
       data.reasons = [];
       data.criteria = [];
       data.signals = [];
+      apiStatus.competition_status = 'error';
+      apiStatus.competition_error = e?.message || 'Bilinmeyen hata';
     }
     let groqScore = null;
     try {
@@ -166,8 +177,11 @@ Sadece JSON döndür, başka bir şey yazma.
       });
       const groqData = JSON.parse(groqResult.choices[0].message.content || '{}');
       groqScore = groqData.score?.overall || null;
-    } catch (e) {
+      apiStatus.groq_status = 'success';
+    } catch (e: any) {
       console.warn('Groq analizi başarısız:', e);
+      apiStatus.groq_status = 'error';
+      apiStatus.groq_error = e?.message || 'Bilinmeyen hata';
     }
      // İki modelin ortalamasını al (Groq çalıştıysa)
     if (groqScore !== null && data.score) {
@@ -218,6 +232,24 @@ Sadece JSON döndür, başka bir şey yazma.
     } catch (e) {
       console.warn('Borsa geçmişi okuma hatası:', e);
       data.scoreHistory = [];
+    }
+    // ===== API DURUMUNU LOGLA (admin panel) =====
+    try {
+      await supabase.from('api_logs').insert({
+        brand_name: brandName,
+        url: url,
+        user_id: userId || null,
+        openai_status: apiStatus.openai_status,
+        openai_error: apiStatus.openai_error || null,
+        groq_status: apiStatus.groq_status,
+        groq_error: apiStatus.groq_error || null,
+        competition_status: apiStatus.competition_status,
+        competition_error: apiStatus.competition_error || null,
+        final_score: data.score?.overall || 0,
+        duration_ms: Date.now() - startTime
+      });
+    } catch (e) {
+      console.warn('API log kayıt hatası:', e);
     }
 
     return response.status(200).json(data);
