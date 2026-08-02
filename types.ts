@@ -29,6 +29,9 @@ export interface AnalysisResult {
   criteria?: Array<{ name: string; val: number }>;
   signals?: Array<{ title: string; val: string; color: string }>;
   scoreHistory?: Array<{ score: number; recorded_at: string }>;
+  queries?: Array<{ question: string; topBrands: string[]; myRank: number }>;
+  querySummary?: { appearedIn: string; avgRank: string; strongestQuery: string; weakestQuery: string };
+  reviewInsights?: { generalSentiment: string; commonComplaints: string[]; commonPraises: string[]; sources: string };
 }
 
 export enum Step {

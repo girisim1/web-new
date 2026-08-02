@@ -25,7 +25,8 @@ const { brandName, url, userId, sector } = request.body || {};
   const apiStatus = {
     openai_status: 'pending', openai_error: '',
     groq_status: 'pending', groq_error: '',
-    competition_status: 'pending', competition_error: ''
+    competition_status: 'pending', competition_error: '',
+    multiquery_status: 'pending', multiquery_error: ''
   };
   let pageContent = '';
   try {
@@ -82,6 +83,49 @@ KURALLAR:
 - signals: gerçekçi tahminler
 Sadece JSON döndür, başka bir şey yazma.
 `;
+
+// ===== ÜÇÜNCÜ ANALİZ: Çoklu Sorgu (marka gerçek sorularda kaçıncı çıkıyor) =====
+  const multiQueryPrompt = `
+Sen bir AI arama davranışı analistisin.
+Marka: ${brandName}
+Sektör: ${sector || 'Genel'}
+
+GÖREV: Bu sektörde gerçek müşterilerin AI asistanlarına (ChatGPT, Gemini) soracağı 5 gerçekçi soru üret. Sonra her soruyu SEN cevapla (bu sektörde hangi markaları önerirsin, sıralı olarak). Her cevapta "${brandName}" markasının kaçıncı sırada geçtiğini belirt (geçmiyorsa 0).
+
+Ayrıca bu markanın yorum/şikayet dünyasındaki durumunu değerlendir (Şikayetvar, Google Reviews, Trustpilot gibi platformlarda genel algı nasıl — bilgine dayanarak).
+
+Aşağıdaki JSON formatında yanıt ver:
+{
+  "queries": [
+    {
+      "question": "Gerçekçi müşteri sorusu",
+      "topBrands": ["1.marka", "2.marka", "3.marka"],
+      "myRank": 0-5 arası sayı (marka kaçıncı sırada, yoksa 0)
+    }
+  ],
+  "querySummary": {
+    "appearedIn": "5 sorgudan kaçında göründü (sayı)",
+    "avgRank": "göründüğü sorgularda ortalama sıra",
+    "strongestQuery": "En iyi sırada çıktığı soru",
+    "weakestQuery": "Hiç çıkmadığı veya en kötü olduğu soru"
+  },
+  "reviewInsights": {
+    "generalSentiment": "Genel yorum algısı (pozitif/karışık/negatif) + kısa açıklama",
+    "commonComplaints": ["Sık şikayet 1", "Sık şikayet 2"],
+    "commonPraises": ["Sık övgü 1", "Sık övgü 2"],
+    "sources": "Hangi platformlara dayanarak (Şikayetvar, Google vb.)"
+  }
+}
+
+KURALLAR:
+- 5 soru üret, hepsi bu sektöre özgü ve gerçekçi olsun
+- topBrands listesinde gerçek marka isimleri kullan
+- myRank dürüst olsun — marka gerçekten güçlü değilse düşük sıra ver veya 0
+- reviewInsights bilgine dayansın, uydurma spesifik sayı verme
+Sadece JSON döndür, başka bir şey yazma.
+`;
+
+
   const prompt = `
 Sen GEO (Generative Engine Optimization) analistisisin.
 Marka: ${brandName}
@@ -168,6 +212,27 @@ Sadece JSON döndür, başka bir şey yazma.
       apiStatus.competition_status = 'error';
       apiStatus.competition_error = e?.message || 'Bilinmeyen hata';
     }
+    // ===== ÜÇÜNCÜ ANALİZ ÇAĞRISI: Çoklu Sorgu =====
+    try {
+      const multiQueryResult = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: multiQueryPrompt }],
+        response_format: { type: 'json_object' }
+      });
+      const mqData = JSON.parse(multiQueryResult.choices[0].message.content || '{}');
+      data.queries = mqData.queries || [];
+      data.querySummary = mqData.querySummary || null;
+      data.reviewInsights = mqData.reviewInsights || null;
+      apiStatus.multiquery_status = 'success';
+    } catch (e: any) {
+      console.warn('Çoklu sorgu başarısız:', e);
+      data.queries = [];
+      data.querySummary = null;
+      data.reviewInsights = null;
+      apiStatus.multiquery_status = 'error';
+      apiStatus.multiquery_error = e?.message || 'Bilinmeyen hata';
+    }
+
     let groqScore = null;
     try {
       const groqResult = await groq.chat.completions.create({
@@ -183,6 +248,8 @@ Sadece JSON döndür, başka bir şey yazma.
       apiStatus.groq_status = 'error';
       apiStatus.groq_error = e?.message || 'Bilinmeyen hata';
     }
+
+    
      // İki modelin ortalamasını al (Groq çalıştıysa)
     if (groqScore !== null && data.score) {
       const openaiScore = data.score.overall;
