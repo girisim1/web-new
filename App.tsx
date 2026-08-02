@@ -707,21 +707,7 @@ const App: React.FC = () => {
                     </div>
                   )}
 
-                  {/* ===== YORUM & BLOG SİNYALLERİ ===== */}
-                  {result.signals && result.signals.length > 0 && (
-                    <div className="glass p-8 rounded-3xl">
-                      <h3 className="text-xl font-bold mb-4 flex items-center gap-2">💬 Yorum & Blog Sinyalleri</h3>
-                      <div className="grid grid-cols-2 gap-3">
-                        {result.signals.map((s, i) => (
-                          <div key={i} className="p-4 rounded-xl bg-slate-900/50 flex flex-col">
-                            <span className="text-slate-400 text-xs mb-1">{s.title}</span>
-                            <span className="font-bold text-lg" style={{color: s.color}}>{s.val}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                  
 
                 {/* ===== ÇOKLU SORGU ===== */}
                   {result.queries && result.queries.length > 0 && (
