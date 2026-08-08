@@ -29,8 +29,17 @@ export interface AnalysisResult {
   criteria?: Array<{ name: string; val: number }>;
   signals?: Array<{ title: string; val: string; color: string }>;
   scoreHistory?: Array<{ score: number; recorded_at: string }>;
-  queries?: Array<{ question: string; topBrands: string[]; myRank: number }>;
-  querySummary?: { appearedIn: string; avgRank: string; strongestQuery: string; weakestQuery: string };
+  unbranded?: {
+    queries: Array<{ question: string; recommendedBrands: string[]; brandAppeared: boolean }>;
+    appearedCount: string;
+    totalCount: number;
+    visibilityRate: string;
+    verdict: string;
+  };
+  branded?: {
+    queries: Array<{ question: string; answer: string }>;
+    sentiment: string;
+  };
   reviewInsights?: { generalSentiment: string; commonComplaints: string[]; commonPraises: string[]; sources: string };
 }
 

@@ -85,47 +85,53 @@ Sadece JSON döndür, başka bir şey yazma.
 `;
 
 // ===== ÜÇÜNCÜ ANALİZ: Çoklu Sorgu (marka gerçek sorularda kaçıncı çıkıyor) =====
-  const multiQueryPrompt = `
-Sen bir AI arama davranışı analistisin.
+const multiQueryPrompt = `
+Sen bir GEO (Generative Engine Optimization) ölçüm analistisin.
 Marka: ${brandName}
 Sektör: ${sector || 'Genel'}
 URL: ${url}
 Site içeriği: ${pageContent || 'Çekilemedi'}
 
-ÇOK ÖNEMLİ - ÖNCE ŞUNU YAP: Yukarıdaki GERÇEK site içeriğini oku ve markanın TAM OLARAK ne iş yaptığını, hangi sektörde olduğunu, ne sattığını belirle. Marka adına bakıp TAHMİN YÜRÜTME. Örneğin marka bir "cookie consent" aracıysa, onu "not alma uygulaması" sanma. Sorularını ve rakiplerini bu gerçek işe göre üret.
+ÖNCE: Site içeriğini oku, markanın GERÇEK işini/kategorisini belirle (marka adına bakıp tahmin etme).
 
-GÖREV: Markanın GERÇEK işine uygun, gerçek müşterilerin AI asistanlarına soracağı 5 gerçekçi soru üret.
-Ayrıca bu markanın yorum/şikayet dünyasındaki durumunu değerlendir (Şikayetvar, Google Reviews, Trustpilot gibi platformlarda genel algı nasıl — bilgine dayanarak).
+GEO ölçümünün özü: Markayı BİLMEYEN bir müşteri, KATEGORİ sorusu sorduğunda bu marka öneriliyor mu? İki tür ölçüm yap:
+
+1) UNBRANDED (asıl GEO metriği): Marka adını İÇERMEYEN, kategori bazlı 6 gerçek soru üret. Örnek: "en iyi cookie consent aracı hangisi?" — ASLA "Okito'nun X özelliği" gibi marka adı geçen soru yazma. Sonra HER soruyu, o kategoride gerçekten önerilen markalarla dürüstçe cevapla. "${brandName}" bu cevapta geçiyorsa işaretle, geçmiyorsa geçmiyor. DÜRÜST OL — marka gerçekten bu kategoride akla gelen bir isim değilse, çoğu unbranded soruda GEÇMEZ, bunu dürüstçe yansıt.
+
+2) BRANDED (itibar metriği): Marka adını İÇEREN 3 soru üret ("${brandName} güvenilir mi?" gibi). Bunlar markayı zaten bilen birinin sorduğu sorular.
 
 Aşağıdaki JSON formatında yanıt ver:
 {
-  "queries": [
-    {
-      "question": "Gerçekçi müşteri sorusu",
-      "topBrands": ["1.marka", "2.marka", "3.marka"],
-      "myRank": 0-5 arası sayı (marka kaçıncı sırada, yoksa 0)
-    }
-  ],
-  "querySummary": {
-    "appearedIn": "5 sorgudan kaçında göründü (sayı)",
-    "avgRank": "göründüğü sorgularda ortalama sıra",
-    "strongestQuery": "En iyi sırada çıktığı soru",
-    "weakestQuery": "Hiç çıkmadığı veya en kötü olduğu soru"
+  "unbranded": {
+    "queries": [
+      {"question": "Marka adı GEÇMEYEN kategori sorusu", "recommendedBrands": ["gerçek1", "gerçek2", "gerçek3"], "brandAppeared": true veya false}
+    ],
+    "appearedCount": "kaç soruda geçti (sadece sayı, örn 2)",
+    "totalCount": 6,
+    "visibilityRate": "yüzde (örn %33)",
+    "verdict": "Dürüst değerlendirme: marka unbranded sorgularda ne durumda? 1-2 cümle"
+  },
+  "branded": {
+    "queries": [
+      {"question": "Marka adı GEÇEN soru", "answer": "AI'ın bu markaya dair kısa cevabı, 1 cümle"}
+    ],
+    "sentiment": "Markayı soranların aldığı genel izlenim (pozitif/nötr/negatif) + kısa açıklama"
   },
   "reviewInsights": {
-    "generalSentiment": "Genel yorum algısı (pozitif/karışık/negatif) + kısa açıklama",
-    "commonComplaints": ["Sık şikayet 1", "Sık şikayet 2"],
-    "commonPraises": ["Sık övgü 1", "Sık övgü 2"],
-    "sources": "Hangi platformlara dayanarak (Şikayetvar, Google vb.)"
+    "generalSentiment": "Yorum platformlarında genel algı. Marka yeni/az bilinen ise 'Bu marka için yeterli kamuya açık yorum verisi bulunmuyor' yaz.",
+    "commonComplaints": [],
+    "commonPraises": [],
+    "sources": "Hangi platformlar (veri yoksa boş)"
   }
 }
 
-KURALLAR:
-- 5 soru, markanın GERÇEK işine (site içeriğinden anladığın) uygun olsun — yanlış kategoriden soru üretme
-- topBrands'de bu markanın GERÇEK rakiplerini kullan. Gerçek rakip bilmiyorsan "Brand X" gibi PLACEHOLDER İSİM ASLA YAZMA — o soruyu atla veya bilinen gerçek markaları kullan
-- myRank dürüst olsun — marka gerçekten o sorguda çıkmıyorsa 0 ver, zorlama
-- reviewInsights: Eğer bu marka yeni/küçük/az bilinen bir markaysa ve yorum platformlarında (Şikayetvar, Trustpilot) anlamlı veri yoksa, generalSentiment alanına "Bu marka için yeterli kamuya açık yorum verisi bulunmuyor" yaz ve commonComplaints/commonPraises'i boş bırak. UYDURMA YORUM ÜRETME.
-- Hiçbir yerde uydurma yüzde ("%25 artış" gibi) verme
+KRİTİK KURALLAR:
+- UNBRANDED sorularda marka adı ("${brandName}") KESİNLİKLE geçmeyecek. Geçerse ölçüm geçersiz olur.
+- brandAppeared DÜRÜST olsun: marka o kategoride gerçekten önerilmiyorsa false yaz. Çoğu küçük/yeni marka unbranded'da az geçer, bu normaldir, uydurma.
+- appearedCount, brandAppeared=true olanların SAYISI ile birebir eşleşmeli (matematik tutarlı olmalı)
+- recommendedBrands'de gerçek markalar olsun, placeholder ("Brand X") ASLA
+- verdict acımasız dürüst olsun — marka geçmiyorsa "henüz unbranded aramalarda görünmüyor" de, "öne çıkıyor" gibi yanlış olumlu yazma
+- Uydurma yüzde/istatistik verme
 Sadece JSON döndür, başka bir şey yazma.
 `;
 
@@ -235,14 +241,14 @@ Sadece JSON döndür, başka bir şey yazma.
         response_format: { type: 'json_object' }
       });
       const mqData = JSON.parse(multiQueryResult.choices[0].message.content || '{}');
-      data.queries = mqData.queries || [];
-      data.querySummary = mqData.querySummary || null;
+      data.unbranded = mqData.unbranded || null;
+      data.branded = mqData.branded || null;
       data.reviewInsights = mqData.reviewInsights || null;
       apiStatus.multiquery_status = 'success';
     } catch (e: any) {
       console.warn('Çoklu sorgu başarısız:', e);
-      data.queries = [];
-      data.querySummary = null;
+      data.unbranded = null;
+      data.branded = null;
       data.reviewInsights = null;
       apiStatus.multiquery_status = 'error';
       apiStatus.multiquery_error = e?.message || 'Bilinmeyen hata';

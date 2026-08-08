@@ -710,37 +710,37 @@ const App: React.FC = () => {
                   
 
                 {/* ===== ÇOKLU SORGU ===== */}
-                  {result.queries && result.queries.length > 0 && (
-                    <div className="glass p-8 rounded-3xl">
-                      <h3 className="text-xl font-bold mb-2 flex items-center gap-2">🔎 Çoklu Sorgu Analizi</h3>
-                      <p className="text-slate-400 text-sm mb-4">Gerçek müşteri sorularında markanız kaçıncı sırada çıkıyor?</p>
-                      
-                      {result.querySummary && (
-                        <div className="grid grid-cols-2 gap-3 mb-5">
-                          <div className="p-4 rounded-xl bg-cyan-500/10 border border-cyan-500/30">
-                            <span className="text-slate-400 text-xs block mb-1">Kaç sorguda göründünüz</span>
-                            <span className="font-bold text-lg text-cyan-400">{result.querySummary.appearedIn}</span>
-                          </div>
-                          <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/30">
-                            <span className="text-slate-400 text-xs block mb-1">Ortalama sıra</span>
-                            <span className="font-bold text-lg text-purple-400">{result.querySummary.avgRank}</span>
-                          </div>
+                  {/* ===== UNBRANDED GÖRÜNÜRLÜK (ASIL GEO) ===== */}
+                  {result.unbranded && (
+                    <div className="glass p-8 rounded-3xl border-2 border-cyan-500/30">
+                      <h3 className="text-xl font-bold mb-1 flex items-center gap-2">🎯 Gerçek AI Görünürlüğü (Unbranded)</h3>
+                      <p className="text-slate-400 text-sm mb-4">Markanızı <b>bilmeyen</b> bir müşteri kategori sorusu sorduğunda AI sizi öneriyor mu? Asıl GEO metriği budur.</p>
+
+                      <div className="grid grid-cols-2 gap-3 mb-5">
+                        <div className="p-4 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-center">
+                          <span className="text-slate-400 text-xs block mb-1">Görünürlük Oranı</span>
+                          <span className="font-black text-3xl text-cyan-400">{result.unbranded.visibilityRate}</span>
+                          <span className="text-slate-500 text-xs block mt-1">{result.unbranded.appearedCount}/{result.unbranded.totalCount} soruda geçtiniz</span>
                         </div>
-                      )}
+                        <div className="p-4 rounded-xl bg-slate-900/50 flex items-center">
+                          <p className="text-sm text-slate-300">{result.unbranded.verdict}</p>
+                        </div>
+                      </div>
 
                       <div className="space-y-2">
-                        {result.queries.map((q, i) => (
+                        {result.unbranded.queries.map((q, i) => (
                           <div key={i} className="p-4 rounded-xl bg-slate-900/50">
-                            <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center justify-between mb-2 gap-3">
                               <span className="text-sm text-slate-300 flex-1">"{q.question}"</span>
-                              <span className={`ml-3 px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${q.myRank === 0 ? 'bg-red-500/20 text-red-400' : q.myRank <= 2 ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
-                                {q.myRank === 0 ? 'Görünmüyor' : q.myRank + '. sıra'}
+                              <span className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${q.brandAppeared ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                                {q.brandAppeared ? '✓ Önerildiniz' : '✗ Görünmediniz'}
                               </span>
                             </div>
                             <div className="flex gap-1 flex-wrap">
-                              {q.topBrands.map((b, j) => (
+                              <span className="text-xs text-slate-500 mr-1">AI'ın önerdikleri:</span>
+                              {q.recommendedBrands.map((b, j) => (
                                 <span key={j} className={`text-xs px-2 py-0.5 rounded ${b.toLowerCase().includes(result.brandName.toLowerCase()) ? 'bg-cyan-500/30 text-cyan-300 font-bold' : 'bg-slate-800 text-slate-400'}`}>
-                                  {j + 1}. {b}
+                                  {b}
                                 </span>
                               ))}
                             </div>
@@ -749,6 +749,30 @@ const App: React.FC = () => {
                       </div>
                     </div>
                   )}
+
+                  {/* ===== BRANDED ALGI ===== */}
+                  {result.branded && (
+                    <div className="glass p-8 rounded-3xl">
+                      <h3 className="text-xl font-bold mb-1 flex items-center gap-2">🏷️ Marka Algısı (Branded)</h3>
+                      <p className="text-slate-400 text-sm mb-4">Markanızı <b>bilen</b> biri sorduğunda AI ne diyor?</p>
+
+                      <div className="p-4 rounded-xl bg-slate-900/50 mb-4">
+                        <span className="text-slate-400 text-xs block mb-1">Genel İzlenim</span>
+                        <span className="text-slate-200 text-sm">{result.branded.sentiment}</span>
+                      </div>
+
+                      <div className="space-y-2">
+                        {result.branded.queries.map((q, i) => (
+                          <div key={i} className="p-4 rounded-xl bg-slate-900/50">
+                            <p className="text-sm text-slate-300 mb-1">"{q.question}"</p>
+                            <p className="text-sm text-slate-400 italic border-l-2 border-cyan-500/40 pl-3">{q.answer}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                 
 
                   {/* ===== YORUM ANALİZİ ===== */}
                   {result.reviewInsights && (
