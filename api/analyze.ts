@@ -136,6 +136,8 @@ Marka: ${brandName}
 URL: ${url}
 Site içeriği: ${pageContent || 'Çekilemedi'}
 
+DİL/PAZAR KURALI: Site içeriğinin diline dikkat et. Site İngilizce ise ve uluslararası pazara hitap ediyorsa, H1/başlık önerilerini İngilizce ver — Türkçeye çevirmesini önerme. Site Türkçe ise Türkçe öner. Markanın hedef pazarına uygun dilde tavsiye ver.
+
 ÖNEMLİ: Öneriler ve eksikler MUTLAKA spesifik ve uygulanabilir olmalı.
 Genel tavsiyeler YASAK. Her öneri şu formatta olmalı:
 - Ne değiştirilmeli (tam olarak)
@@ -144,7 +146,12 @@ Genel tavsiyeler YASAK. Her öneri şu formatta olmalı:
 
 UYDURMA YÜZDE YASAK: "%25 daha fazla görünürlük", "%50 hız artışı", "%30 dönüşüm" gibi DAYANAKSIZ sayısal vaatler ASLA verme. Bunlar profesyonellerin anında yakaladığı uydurma istatistiklerdir. Bunun yerine niteliksel ve gerçekçi konuş: "AI modelleri markanızı daha net tanır", "arama sonuçlarında daha doğru kategorize edilirsiniz" gibi.
 
-SCHEMA/SOSYAL MEDYA: generatedSchema üretirken, GERÇEK bilmediğin sosyal medya hesaplarını (facebook.com/marka gibi) UYDURMA. Site içeriğinde gerçek sosyal medya linkleri varsa onları kullan, yoksa sameAs alanını hiç ekleme veya boş bırak. Yanlış link vermek kopyala-yapıştır yapan kullanıcıya zarar verir.
+SCHEMA UYDURMA YASAĞI: generatedSchema üretirken UYDURMA VERİ KOYMA. Kopyala-yapıştır yapan kullanıcıya zarar verir:
+- Sosyal medya (sameAs): Site içeriğinde gerçek link varsa kullan, yoksa boş dizi [] bırak. facebook.com/marka gibi UYDURMA.
+- Telefon (telephone): Site içeriğinde gerçek telefon varsa kullan, yoksa bu alanı HİÇ EKLEME. "+1-800-555-5555" gibi sahte numara ASLA yazma.
+- Adres: Gerçek adres yoksa boş bırak veya ekleme.
+- Logo: Tahmini logo URL'si (site.com/logo.png) uydurma, emin değilsen ekleme.
+Sadece site içeriğinden GERÇEKTEN bildiğin bilgileri koy.
 
 Örnek DOĞRU öneri: "H1 başlığınızı 'Hizmetlerimiz' yerine 'Ankara Boşanma Avukatı | 20 Yıllık Deneyim' yapın — ChatGPT coğrafi sorgularda sizi %40 daha sık önerir"
 Örnek YANLIŞ öneri: "Sosyal medyaya önem verin"
