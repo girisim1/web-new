@@ -781,7 +781,7 @@ const App: React.FC = () => {
                       </div>
                     </div>
                   )}
-
+                </div>
                 {/* CTA bölümü */}
                 <div className="glass p-12 rounded-3xl text-center space-y-6 bg-gradient-to-b from-slate-900/50 to-cyan-900/10">
                   <h3 className="text-2xl font-bold">Bu Markayı AI Dünyasında <span className="text-cyan-400">Domine Etmek</span> İster Misiniz?</h3>
