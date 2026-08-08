@@ -11,7 +11,7 @@ const FAQ: React.FC = () => {
         },
         {
             question: "Analiz süreci nasıl işliyor?",
-            answer: "Web sitesi adresinizi ve marka adınızı sisteme girdiğinizde, AI-MARK gelişmiş proxy ağları üzerinden devasa bir sorgu simülasyonu başlatır. ChatGPT ve Gemini'ye markanız veya sektörünüzle ilgili yüzlerce soru sorulur. Alınan yanıtlar; hatırlanabilirlik, algı (sentiment), ve güvenilirlik gibi metriklerle analiz edilerek skorlanır."
+            answer: "Web sitesi adresinizi ve marka adınızı sisteme girdiğinizde, platformumuz sitenizi tarar ve markanızı birden fazla yapay zeka modeline (ChatGPT ve Llama 3) analiz ettirir. Sektörünüzle ilgili gerçek müşteri soruları sorularak markanızın hangi sıralamada çıktığı tespit edilir. Alınan yanıtlar; hatırlanabilirlik, algı (sentiment) ve güvenilirlik gibi metriklerle analiz edilerek skorlanır."
         },
         {
             question: "Kredi sistemi nasıl çalışır?",

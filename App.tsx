@@ -163,7 +163,7 @@ const App: React.FC = () => {
 
     try {
       const t1 = setTimeout(() => setLoadingMsg('Semantik ilişkiler analiz ediliyor...'), 2500);
-      const t2 = setTimeout(() => setLoadingMsg('Gemini AI ile GEO skoru hesaplanıyor...'), 5000);
+      const t2 = setTimeout(() => setLoadingMsg('ChatGPT ve Llama 3 AI ile GEO skoru hesaplanıyor...'), 5000);
       const t3 = setTimeout(() => setLoadingMsg('E-E-A-T metrikleri değerlendiriliyor...'), 8000);
 
       const analysis = await analyzeBrandVisibility(brandName, url, session?.user?.id);

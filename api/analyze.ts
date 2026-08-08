@@ -48,9 +48,9 @@ Sen bir pazar ve rekabet analistisin.
 Marka: ${brandName}
 Sektör: ${sector || 'Genel'}
 URL: ${url}
+Site içeriği: ${pageContent || 'Çekilemedi'}
 
-Bu markanın sektöründeki AI görünürlük rekabetini analiz et. GERÇEKÇİ ol — bu sektördeki gerçek rakip markaları kullan.
-
+ÇOK ÖNEMLİ: Yukarıdaki GERÇEK site içeriğine bak, markanın ne iş yaptığını oradan anla. Kendi tahminini uydurma. Site içeriği boşsa veya anlaşılmıyorsa, marka adından emin olmadığın çıkarımlar yapma.
 Aşağıdaki JSON formatında yanıt ver:
 {
   "ranking": [
@@ -89,9 +89,12 @@ Sadece JSON döndür, başka bir şey yazma.
 Sen bir AI arama davranışı analistisin.
 Marka: ${brandName}
 Sektör: ${sector || 'Genel'}
+URL: ${url}
+Site içeriği: ${pageContent || 'Çekilemedi'}
 
-GÖREV: Bu sektörde gerçek müşterilerin AI asistanlarına (ChatGPT, Gemini) soracağı 5 gerçekçi soru üret. Sonra her soruyu SEN cevapla (bu sektörde hangi markaları önerirsin, sıralı olarak). Her cevapta "${brandName}" markasının kaçıncı sırada geçtiğini belirt (geçmiyorsa 0).
+ÇOK ÖNEMLİ - ÖNCE ŞUNU YAP: Yukarıdaki GERÇEK site içeriğini oku ve markanın TAM OLARAK ne iş yaptığını, hangi sektörde olduğunu, ne sattığını belirle. Marka adına bakıp TAHMİN YÜRÜTME. Örneğin marka bir "cookie consent" aracıysa, onu "not alma uygulaması" sanma. Sorularını ve rakiplerini bu gerçek işe göre üret.
 
+GÖREV: Markanın GERÇEK işine uygun, gerçek müşterilerin AI asistanlarına soracağı 5 gerçekçi soru üret.
 Ayrıca bu markanın yorum/şikayet dünyasındaki durumunu değerlendir (Şikayetvar, Google Reviews, Trustpilot gibi platformlarda genel algı nasıl — bilgine dayanarak).
 
 Aşağıdaki JSON formatında yanıt ver:
@@ -118,10 +121,11 @@ Aşağıdaki JSON formatında yanıt ver:
 }
 
 KURALLAR:
-- 5 soru üret, hepsi bu sektöre özgü ve gerçekçi olsun
-- topBrands listesinde gerçek marka isimleri kullan
-- myRank dürüst olsun — marka gerçekten güçlü değilse düşük sıra ver veya 0
-- reviewInsights bilgine dayansın, uydurma spesifik sayı verme
+- 5 soru, markanın GERÇEK işine (site içeriğinden anladığın) uygun olsun — yanlış kategoriden soru üretme
+- topBrands'de bu markanın GERÇEK rakiplerini kullan. Gerçek rakip bilmiyorsan "Brand X" gibi PLACEHOLDER İSİM ASLA YAZMA — o soruyu atla veya bilinen gerçek markaları kullan
+- myRank dürüst olsun — marka gerçekten o sorguda çıkmıyorsa 0 ver, zorlama
+- reviewInsights: Eğer bu marka yeni/küçük/az bilinen bir markaysa ve yorum platformlarında (Şikayetvar, Trustpilot) anlamlı veri yoksa, generalSentiment alanına "Bu marka için yeterli kamuya açık yorum verisi bulunmuyor" yaz ve commonComplaints/commonPraises'i boş bırak. UYDURMA YORUM ÜRETME.
+- Hiçbir yerde uydurma yüzde ("%25 artış" gibi) verme
 Sadece JSON döndür, başka bir şey yazma.
 `;
 
@@ -137,6 +141,10 @@ Genel tavsiyeler YASAK. Her öneri şu formatta olmalı:
 - Ne değiştirilmeli (tam olarak)
 - Neden (AI'a etkisi)
 - Nasıl (kısa teknik adım)
+
+UYDURMA YÜZDE YASAK: "%25 daha fazla görünürlük", "%50 hız artışı", "%30 dönüşüm" gibi DAYANAKSIZ sayısal vaatler ASLA verme. Bunlar profesyonellerin anında yakaladığı uydurma istatistiklerdir. Bunun yerine niteliksel ve gerçekçi konuş: "AI modelleri markanızı daha net tanır", "arama sonuçlarında daha doğru kategorize edilirsiniz" gibi.
+
+SCHEMA/SOSYAL MEDYA: generatedSchema üretirken, GERÇEK bilmediğin sosyal medya hesaplarını (facebook.com/marka gibi) UYDURMA. Site içeriğinde gerçek sosyal medya linkleri varsa onları kullan, yoksa sameAs alanını hiç ekleme veya boş bırak. Yanlış link vermek kopyala-yapıştır yapan kullanıcıya zarar verir.
 
 Örnek DOĞRU öneri: "H1 başlığınızı 'Hizmetlerimiz' yerine 'Ankara Boşanma Avukatı | 20 Yıllık Deneyim' yapın — ChatGPT coğrafi sorgularda sizi %40 daha sık önerir"
 Örnek YANLIŞ öneri: "Sosyal medyaya önem verin"
