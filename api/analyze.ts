@@ -199,66 +199,69 @@ Aşağıdaki JSON formatında analiz yap:
 }
 Sadece JSON döndür, başka bir şey yazma.
 `;
-
   try {
-    const result = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: prompt }],
-      response_format: { type: 'json_object' }
-    });
-
-    const data = JSON.parse(result.choices[0].message.content || '{}');
-    apiStatus.openai_status = 'success';
-    
-    // ===== İKİNCİ ANALİZ ÇAĞRISI: Rekabet analizi =====
-    try {
-      const competitionResult = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [{ role: 'user', content: competitionPrompt }],
-        response_format: { type: 'json_object' }
-      });
-      const competitionData = JSON.parse(competitionResult.choices[0].message.content || '{}');
-      
-      data.ranking = competitionData.ranking || [];
-      data.reasons = competitionData.reasons || [];
-      data.criteria = competitionData.criteria || [];
-      data.signals = competitionData.signals || [];
-      apiStatus.competition_status = 'success';
-    } catch (e: any) {
-      console.warn('Rekabet analizi başarısız:', e);
-      data.ranking = [];
-      data.reasons = [];
-      data.criteria = [];
-      data.signals = [];
-      apiStatus.competition_status = 'error';
-      apiStatus.competition_error = e?.message || 'Bilinmeyen hata';
-    }
-    // ===== ÜÇÜNCÜ ANALİZ ÇAĞRISI: Çoklu Sorgu =====
+    // ===== 1) ÖNCE UNBRANDED ÖLÇÜM (gerçek görünürlük — skor bundan türeyecek) =====
+    let mqData: any = null;
+    let unbrandedSummary = '';
     try {
       const multiQueryResult = await openai.chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [{ role: 'user', content: multiQueryPrompt }],
         response_format: { type: 'json_object' }
       });
-      const mqData = JSON.parse(multiQueryResult.choices[0].message.content || '{}');
-      data.unbranded = mqData.unbranded || null;
-      data.branded = mqData.branded || null;
-      data.reviewInsights = mqData.reviewInsights || null;
+      mqData = JSON.parse(multiQueryResult.choices[0].message.content || '{}');
       apiStatus.multiquery_status = 'success';
+      if (mqData?.unbranded) {
+        unbrandedSummary = `\n\nGERÇEK ÖLÇÜM SONUCU (buna göre skorla): Bu marka, markasız kategori sorularının ${mqData.unbranded.appearedCount}/${mqData.unbranded.totalCount}'inde AI tarafından önerildi. Görünürlük oranı: ${mqData.unbranded.visibilityRate}. Değerlendirme: ${mqData.unbranded.verdict}\n\nKURAL: Genel skoru ve alt skorları BU ölçüme göre ver. Görünürlük %0-20 ise genel skor 40'ın altında olmalı. Görünürlük %20-50 ise 40-60 arası. Marka AI aramalarında görünmüyorsa yüksek skor VERME. "güvenilir", "öne çıkıyor", "dikkat çekiyor" gibi abartılı olumlu ifadeler KULLANMA — ölçümle tutarlı, dürüst ol. Kullanıcı yorumu verisi yoksa "arayüz beğeniliyor" gibi kanıtsız övgü YAZMA.`;
+      }
     } catch (e: any) {
-      console.warn('Çoklu sorgu başarısız:', e);
-      data.unbranded = null;
-      data.branded = null;
-      data.reviewInsights = null;
+      console.warn('Unbranded ölçüm başarısız:', e);
       apiStatus.multiquery_status = 'error';
       apiStatus.multiquery_error = e?.message || 'Bilinmeyen hata';
+    }
+
+    // ===== 2) ANA ANALİZ (unbranded gerçeğine göre dürüst skorlar) =====
+    const result = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [{ role: 'user', content: prompt + unbrandedSummary }],
+      response_format: { type: 'json_object' }
+    });
+
+    const data = JSON.parse(result.choices[0].message.content || '{}');
+    apiStatus.openai_status = 'success';
+
+    // Unbranded/branded verilerini data'ya ekle
+    data.unbranded = mqData?.unbranded || null;
+    data.branded = mqData?.branded || null;
+    data.reviewInsights = mqData?.reviewInsights || null;
+
+    // ===== 3) REKABET ANALİZİ (unbranded ile tutarlı) =====
+    try {
+      const competitionResult = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: competitionPrompt + unbrandedSummary + '\n\nKURAL: Sıralamayı yukarıdaki gerçek unbranded ölçümle TUTARLI yap. Marka unbranded sorularda hiç görünmüyorsa, sıralamada rakiplerinin ÜSTÜNE koyma — en altlarda olmalı veya listede en sonda.' }],
+        response_format: { type: 'json_object' }
+      });
+      const competitionData = JSON.parse(competitionResult.choices[0].message.content || '{}');
+
+      data.ranking = competitionData.ranking || [];
+      data.reasons = competitionData.reasons || [];
+      data.criteria = competitionData.criteria || [];
+      apiStatus.competition_status = 'success';
+    } catch (e: any) {
+      console.warn('Rekabet analizi başarısız:', e);
+      data.ranking = [];
+      data.reasons = [];
+      data.criteria = [];
+      apiStatus.competition_status = 'error';
+      apiStatus.competition_error = e?.message || 'Bilinmeyen hata';
     }
 
     let groqScore = null;
     try {
       const groqResult = await groq.chat.completions.create({
         model: 'llama-3.3-70b-versatile',
-        messages: [{ role: 'user', content: prompt }],
+        messages: [{ role: 'user', content: prompt + unbrandedSummary }],
         response_format: { type: 'json_object' }
       });
       const groqData = JSON.parse(groqResult.choices[0].message.content || '{}');
