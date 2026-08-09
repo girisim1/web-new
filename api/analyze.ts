@@ -126,6 +126,9 @@ Aşağıdaki JSON formatında yanıt ver:
 }
 
 KRİTİK KURALLAR:
+- SADECE Türkçe ve İngilizce karakter kullan. Arapça/Farsça/Çince vb. karakter ASLA çıkarma. Bir marka ismi bozuk/okunaksız geliyorsa o markayı hiç listeleme.
+- KATEGORİ SABİTLE: Sorular ve rakipler SADECE markanın gerçek kategorisinden olsun. Örneğin marka bir "cookie consent" (CMP) aracıysa, "privacy policy generator" (iubenda, GetTerms gibi) veya alakasız araçları rakip olarak KARIŞTIRMA. Emin olmadığın, o kategoride gerçek oyuncu olmayan marka isimleri UYDURMA.
+- BRANDED "VERİ YOK" KURALI: reviewInsights'ta yorum verisi yoksa, branded.sentiment alanına da "Bu marka için yeterli kamuya açık yorum/algı verisi bulunmuyor" yaz. Yorum verisi olmadan "kullanıcılar memnun", "yorumlar karışık" gibi şeyler ASLA yazma.
 - UNBRANDED sorularda marka adı ("${brandName}") KESİNLİKLE geçmeyecek. Geçerse ölçüm geçersiz olur.
 - brandAppeared DÜRÜST olsun: marka o kategoride gerçekten önerilmiyorsa false yaz. Çoğu küçük/yeni marka unbranded'da az geçer, bu normaldir, uydurma.
 - appearedCount, brandAppeared=true olanların SAYISI ile birebir eşleşmeli (matematik tutarlı olmalı)
@@ -150,6 +153,7 @@ Genel tavsiyeler YASAK. Her öneri şu formatta olmalı:
 - Neden (AI'a etkisi)
 - Nasıl (kısa teknik adım)
 
+TAVSİYELER VERİYE DAYALI OLMALI (recommendations): Tavsiyeleri unbranded ölçüm sonucundan türet. Eğer marka kategori aramalarında görünmüyorsa, "sosyal medya hesabı açın", "anket ekleyin", "CTA kullanın" gibi JENERİK PAZARLAMA tavsiyeleri VERME. Bunun yerine AI görünürlüğünü artıracak GERÇEK adımları öner: sektörün AI tarafından alıntılanan kaynaklarında (G2, Capterra, Trustpilot, "en iyi [kategori]" karşılaştırma listeleri, sektör dizinleri) yer almak; bağımsız incelemeler/karşılaştırmalar almak; yapılandırılmış veri (schema) eklemek; otoriter sitelerden atıf almak. Yani AI modellerinin markayı öğrendiği kaynaklara girmeye odaklan.
 UYDURMA YÜZDE YASAK: "%25 daha fazla görünürlük", "%50 hız artışı", "%30 dönüşüm" gibi DAYANAKSIZ sayısal vaatler ASLA verme. Bunlar profesyonellerin anında yakaladığı uydurma istatistiklerdir. Bunun yerine niteliksel ve gerçekçi konuş: "AI modelleri markanızı daha net tanır", "arama sonuçlarında daha doğru kategorize edilirsiniz" gibi.
 
 URL/VERİ UYDURMA YASAĞI (schema VE llms.txt için): Taramada GÖRMEDİĞİN hiçbir URL veya veriyi ÜRETME. Bu kopyala-yapıştır yapan kullanıcıya zarar verir:
@@ -160,6 +164,11 @@ URL/VERİ UYDURMA YASAĞI (schema VE llms.txt için): Taramada GÖRMEDİĞİN hi
 - Adres: Gerçek adres yoksa ekleme.
 KURAL: Emin değilsen, o alanı boş bırak veya hiç ekleme. UYDURMAK, boş bırakmaktan DAHA KÖTÜDÜR.
 llms.txt üretirken de aynı kural: var olduğunu bilmediğin alt sayfa adresleri (${url}products gibi) yazma, sadece ana sayfayı referans al.
+
+SCHEMA TİPİ DOĞRU SEÇ: Markanın gerçek türüne uygun schema.org tipi kullan. Yazılım/SaaS ürünü ise "SoftwareApplication" veya "Organization" kullan — "LegalService" gibi alakasız tip KULLANMA. Site içeriğinden markanın ne olduğunu anla, ona göre tip seç.
+
+KANITSIZ ÖVGÜ YASAĞI (weaknesses ve reasons için): "Kullanıcı dostu arayüz", "arayüzü beğeniliyor", "kolay kullanım" gibi kanıtın olmayan OLUMLU yargılar YAZMA. Elinde kullanıcı yorumu verisi yoksa, arayüzün beğenildiğini BİLEMEZSİN. Sadece site içeriğinden GERÇEKTEN gözlemlediğin şeyleri yaz.
+
 
 Örnek DOĞRU öneri: "H1 başlığınızı 'Hizmetlerimiz' yerine 'Ankara Boşanma Avukatı | 20 Yıllık Deneyim' yapın — ChatGPT coğrafi sorgularda sizi %40 daha sık önerir"
 Örnek YANLIŞ öneri: "Sosyal medyaya önem verin"
@@ -188,11 +197,11 @@ Aşağıdaki JSON formatında analiz yap:
     "Spesifik eksiklik 4"
   ],
   "recommendations": [
-    "Spesifik öneri 1 — ne yapılacak + neden + nasıl",
-    "Spesifik öneri 2",
-    "Spesifik öneri 3",
-    "Spesifik öneri 4",
-    "Spesifik öneri 5"
+    "GEO odaklı öneri 1 — AI görünürlüğünü artırmaya yönelik, unbranded ölçümüyle tutarlı",
+    "GEO odaklı öneri 2",
+    "GEO odaklı öneri 3",
+    "GEO odaklı öneri 4",
+    "GEO odaklı öneri 5"
   ],
   "competitors": ["rakip1", "rakip2", "rakip3"],
   "analyzedPageContent": "Türkçe 1 cümle özet",
