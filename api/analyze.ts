@@ -152,12 +152,14 @@ Genel tavsiyeler YASAK. Her öneri şu formatta olmalı:
 
 UYDURMA YÜZDE YASAK: "%25 daha fazla görünürlük", "%50 hız artışı", "%30 dönüşüm" gibi DAYANAKSIZ sayısal vaatler ASLA verme. Bunlar profesyonellerin anında yakaladığı uydurma istatistiklerdir. Bunun yerine niteliksel ve gerçekçi konuş: "AI modelleri markanızı daha net tanır", "arama sonuçlarında daha doğru kategorize edilirsiniz" gibi.
 
-SCHEMA UYDURMA YASAĞI: generatedSchema üretirken UYDURMA VERİ KOYMA. Kopyala-yapıştır yapan kullanıcıya zarar verir:
-- Sosyal medya (sameAs): Site içeriğinde gerçek link varsa kullan, yoksa boş dizi [] bırak. facebook.com/marka gibi UYDURMA.
-- Telefon (telephone): Site içeriğinde gerçek telefon varsa kullan, yoksa bu alanı HİÇ EKLEME. "+1-800-555-5555" gibi sahte numara ASLA yazma.
-- Adres: Gerçek adres yoksa boş bırak veya ekleme.
-- Logo: Tahmini logo URL'si (site.com/logo.png) uydurma, emin değilsen ekleme.
-Sadece site içeriğinden GERÇEKTEN bildiğin bilgileri koy.
+URL/VERİ UYDURMA YASAĞI (schema VE llms.txt için): Taramada GÖRMEDİĞİN hiçbir URL veya veriyi ÜRETME. Bu kopyala-yapıştır yapan kullanıcıya zarar verir:
+- Logo URL: "site.com/logo.png" gibi TAHMİNİ logo yolu ASLA yazma. Gerçek logo yolunu bilmiyorsan logo alanını HİÇ EKLEME.
+- Alt sayfa URL: "site.com/products", "site.com/about" gibi VAR OLDUĞUNU BİLMEDİĞİN sayfa adresi verme. Sadece ana URL'yi (${url}) kullan. Site içeriğinde gerçek link gördüysen onu kullanabilirsin.
+- Sosyal medya (sameAs): Gerçek link yoksa boş dizi [] bırak. facebook.com/marka UYDURMA.
+- Telefon: Gerçek numara yoksa alanı HİÇ EKLEME. Sahte numara ("+1-800-...") ASLA.
+- Adres: Gerçek adres yoksa ekleme.
+KURAL: Emin değilsen, o alanı boş bırak veya hiç ekleme. UYDURMAK, boş bırakmaktan DAHA KÖTÜDÜR.
+llms.txt üretirken de aynı kural: var olduğunu bilmediğin alt sayfa adresleri (${url}products gibi) yazma, sadece ana sayfayı referans al.
 
 Örnek DOĞRU öneri: "H1 başlığınızı 'Hizmetlerimiz' yerine 'Ankara Boşanma Avukatı | 20 Yıllık Deneyim' yapın — ChatGPT coğrafi sorgularda sizi %40 daha sık önerir"
 Örnek YANLIŞ öneri: "Sosyal medyaya önem verin"
