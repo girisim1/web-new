@@ -138,7 +138,7 @@ const RegisterView: React.FC<RegisterViewProps> = ({ onRegister, onNavigateToLog
                 <div className="relative z-10 space-y-8">
                     <div className="text-center space-y-2">
                         <h2 className="text-3xl font-bold tracking-tight">Kayıt Ol</h2>
-                        <p className="text-slate-400">AI-MARK GEO dünyasına katılın</p>
+                        <p className="text-slate-400">Nytome dünyasına katılın</p>
                     </div>
 
                     {errorMsg && (

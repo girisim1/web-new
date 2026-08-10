@@ -13,7 +13,7 @@ export const analyzeBrandVisibility = async (brandName: string, url: string, use
     // Bu yüzden prompt'a URL'yi ve marka adını verip Gemini'nin kendi bilgisine dayanmasını sağlıyoruz.
     // Production'daki gerçek scraping Vercel Serverless Function üzerinden yapılır.
     const prompt = `
-Sen AI-MARK GEO platformunun kıdemli GEO (Generative Engine Optimization) analistisisin.
+Sen Nytome platformunun kıdemli GEO (Generative Engine Optimization) analistisisin.
 Aşağıdaki marka ve web sitesini, yapay zeka modellerinin (ChatGPT, Google Gemini, Claude, Perplexity) perspektifinden derinlemesine analiz et.
 
 ## Analiz Edilecek Marka:

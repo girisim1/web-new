@@ -12,10 +12,10 @@ const SiteFooter: React.FC = () => {
                             <div className="bg-cyan-500 p-2 rounded-lg">
                                 <Cpu className="text-white w-6 h-6" />
                             </div>
-                            <span className="font-bold text-xl tracking-tight">AI-MARK <span className="text-cyan-400">GEO</span></span>
+                            <span className="font-bold text-xl tracking-tight">Nyto<span className="text-cyan-400">me</span></span>
                         </div>
                         <p className="text-sm text-slate-400 leading-relaxed">
-                            Yapay zeka modellerinin markanızı nasıl anladığını analiz eden, yeni nesil Generative Engine Optimization (GEO) platformu.
+                            <span className="text-cyan-400 font-medium">AI'ın markanızla tanışma şekli.</span> Markanızın yapay zeka modellerinde ne kadar görünür olduğunu ölçen ve öne çıkmanız için yol gösteren GEO platformu.
                         </p>
                         <div className="flex gap-4">
                             <a href="#" className="p-2 bg-slate-900 rounded-lg hover:bg-cyan-500/20 hover:text-cyan-400 transition-colors">
@@ -67,7 +67,7 @@ const SiteFooter: React.FC = () => {
 
                 {/* Bottom Bar */}
                 <div className="pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-medium text-slate-500">
-                    <p>© {new Date().getFullYear()} AI-MARK GEO Platform - Tüm Hakları Saklıdır.</p>
+                    <p>© {new Date().getFullYear()} Nytome Platform - Tüm Hakları Saklıdır.</p>
                     <div className="flex gap-6">
                         <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div> Sistem Aktif</span>
                         <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div> API Bağlantısı Başarılı</span>

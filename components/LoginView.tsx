@@ -74,7 +74,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, onNavigateToRegister }) 
                 <div className="relative z-10 space-y-8">
                     <div className="text-center space-y-2">
                         <h2 className="text-3xl font-bold tracking-tight">Hoş Geldiniz</h2>
-                        <p className="text-slate-400">AI-MARK GEO paneline giriş yapın</p>
+                        <p className="text-slate-400">Nytome paneline giriş yapın</p>
                     </div>
 
                     {errorMsg && (

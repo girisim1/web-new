@@ -206,7 +206,7 @@ const App: React.FC = () => {
           <div className="bg-cyan-500 p-2 rounded-lg group-hover:scale-105 transition-transform">
             <Cpu className="text-white w-6 h-6" />
           </div>
-          <span className="font-bold text-xl tracking-tight">AI-MARK <span className="text-cyan-400">GEO</span></span>
+          
         </div>
         <div className="hidden md:flex gap-6 text-sm font-medium text-slate-400">
           <a href="#services" className="hover:text-cyan-400 transition-colors">Servisler</a>
@@ -362,13 +362,13 @@ const App: React.FC = () => {
                 <div className="text-center space-y-4 max-w-3xl mx-auto">
                   <div className="inline-flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/20 px-4 py-1.5 rounded-full text-cyan-400 text-sm font-medium mb-4">
                     <Zap className="w-4 h-4" />
-                    <span>Yıkıcı İnovasyon: AI Engine Optimization</span>
+                    <span>Nytome — AI'ın markanızla tanışma şekli</span>
                   </div>
                   <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-tight">
                     AI Sizi <span className="gradient-text">Öneriyor Mu?</span>
                   </h1>
                   <p className="text-slate-400 text-lg md:text-xl">
-                    Yapay zeka modelleri markanızı nasıl tanıyor? ChatGPT'de üst sıralara çıkmak ve AI tarafından tavsiye edilmek için veriye dayalı GEO analizinizi şimdi başlatın.
+                    Markanız ChatGPT, Claude ve diğer yapay zeka modellerinde görünüyor mu? Nytome, markanızı bilmeyen bir müşteri kategori sorusu sorduğunda AI'ın sizi önerip önermediğini ölçer — ve nasıl öne çıkacağınızı gösterir.
                   </p>
                 </div>
 
