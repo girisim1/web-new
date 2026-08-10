@@ -22,7 +22,8 @@ const App: React.FC = () => {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [loadingMsg, setLoadingMsg] = useState('Veriler taranıyor...');
   const [adminLogs, setAdminLogs] = useState<any[]>([]);
-
+  const ADMIN_EMAILS = ['b2230765035@cs.hacettepe.edu.tr', 'omerfozen42@gmail.com'];
+const isAdmin = session?.user?.email ? ADMIN_EMAILS.includes(session.user.email) : false;
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [credits, setCredits] = useState<number>(0);
   const [loadingCredits, setLoadingCredits] = useState(false);
@@ -229,7 +230,8 @@ const App: React.FC = () => {
             </>
           ) : (
             <>
-            <button
+            {isAdmin && (
+              <button
                 onClick={async () => {
                   setCurrentView('admin');
                   const { data } = await supabase
@@ -244,6 +246,7 @@ const App: React.FC = () => {
               >
                 ⚙️ Admin
               </button>
+            )}
               <div
                 onClick={() => setCurrentView('pricing')}
                 className="flex items-center gap-2 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-full cursor-pointer transition-colors"
@@ -297,7 +300,7 @@ const App: React.FC = () => {
           />
         )}
 
-        {currentView === 'admin' && (
+        {currentView === 'admin' && isAdmin && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
