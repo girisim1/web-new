@@ -15,8 +15,8 @@ const Features: React.FC = () => {
         },
         {
             icon: <Activity className="w-6 h-6 text-purple-400" />,
-            title: "Yapay Zekayı İnternette Manipüle Etme Hizmeti",
-            description: "Markanızın dijital varlığını güçlendirmek için yapay zeka modellerini stratejik olarak manipüle edip AI kaynaklarında markanızı ön çıkarma hizmeti."
+            title: "Yapay Zeka Görünürlük Stratejisi",
+            description: "Markanız hakkında gerçek ve faydalı içerikler üreterek, AI modellerinin öğrendiği kaynaklarda (karşılaştırma yazıları, sektör dizinleri, inceleme platformları) yer almanızı sağlar. Böylece kategori sorularında AI sizi daha sık önerir."
         }
     ];
 
