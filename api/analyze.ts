@@ -83,6 +83,67 @@ KURALLAR:
 - signals: gerçekçi tahminler
 Sadece JSON döndür, başka bir şey yazma.
 `;
+// ===== SABİT SORGU SETİ: Var mı kontrol et, yoksa üret =====
+  let fixedQueries: any[] = [];
+  let querySetExists = false;
+  try {
+    const { data: existingSet } = await supabase
+      .from('brand_query_sets')
+      .select('unbranded_queries')
+      .eq('brand_name', brandName)
+      .single();
+    if (existingSet?.unbranded_queries) {
+      fixedQueries = existingSet.unbranded_queries;
+      querySetExists = true;
+    }
+  } catch (e) {
+    console.warn('Sorgu seti okuma:', e);
+  }
+
+  // Sorgu seti yoksa AI ile üret (önem sırası + gerekçe ile)
+  if (!querySetExists) {
+    try {
+      const querySetPrompt = `
+Sen bir GEO sorgu stratejistisin.
+Marka: ${brandName}
+Sektör: ${sector || 'Genel'}
+Site içeriği: ${pageContent || 'Çekilemedi'}
+
+ÖNCE site içeriğinden markanın GERÇEK kategorisini belirle (marka adından tahmin etme).
+
+GÖREV: Bu kategorideki müşterilerin AI asistanlarına soracağı, marka adı İÇERMEYEN 6 kategori sorusu üret. Soruları ÖNEM/ARAMA HACMİ sırasına göre (en çok sorulandan aza) sırala. Her soru için neden önemli olduğunu kısaca belirt.
+
+SADECE Türkçe/İngilizce karakter kullan. Kategori dışına çıkma.
+
+JSON formatı:
+{
+  "queries": [
+    {"question": "Marka adı geçmeyen kategori sorusu", "importance": "yüksek/orta", "reason": "Neden önemli — kısa"}
+  ]
+}
+Sadece JSON döndür.`;
+
+      const querySetResult = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: querySetPrompt }],
+        response_format: { type: 'json_object' }
+      });
+      const qsData = JSON.parse(querySetResult.choices[0].message.content || '{}');
+      fixedQueries = qsData.queries || [];
+
+      // Kaydet — bir daha üretilmesin
+      if (fixedQueries.length > 0) {
+        await supabase.from('brand_query_sets').insert({
+          brand_name: brandName,
+          sector: sector || null,
+          unbranded_queries: fixedQueries
+        });
+      }
+    } catch (e) {
+      console.warn('Sorgu seti üretme:', e);
+    }
+  }
+
 
 // ===== ÜÇÜNCÜ ANALİZ: Çoklu Sorgu (marka gerçek sorularda kaçıncı çıkıyor) =====
 const multiQueryPrompt = `
@@ -96,7 +157,10 @@ Site içeriği: ${pageContent || 'Çekilemedi'}
 
 GEO ölçümünün özü: Markayı BİLMEYEN bir müşteri, KATEGORİ sorusu sorduğunda bu marka öneriliyor mu? İki tür ölçüm yap:
 
-1) UNBRANDED (asıl GEO metriği): Marka adını İÇERMEYEN, kategori bazlı 6 gerçek soru üret. Örnek: "en iyi cookie consent aracı hangisi?" — ASLA "Okito'nun X özelliği" gibi marka adı geçen soru yazma. Sonra HER soruyu, o kategoride gerçekten önerilen markalarla dürüstçe cevapla. "${brandName}" bu cevapta geçiyorsa işaretle, geçmiyorsa geçmiyor. DÜRÜST OL — marka gerçekten bu kategoride akla gelen bir isim değilse, çoğu unbranded soruda GEÇMEZ, bunu dürüstçe yansıt.
+1) UNBRANDED (asıl GEO metriği): AŞAĞIDAKİ SABİT SORGULARI kullan (yeni soru ÜRETME, bunları AYNEN kullan):
+${fixedQueries.map((q: any, i: number) => `${i + 1}. ${q.question}`).join('\n')}
+
+Bu soruların HER BİRİNİ, o kategoride gerçekten önerilen markalarla dürüstçe cevapla. "${brandName}" bu cevapta geçiyorsa işaretle, geçmiyorsa geçmiyor. DÜRÜST OL — marka gerçekten bu kategoride akla gelen bir isim değilse, çoğu unbranded soruda GEÇMEZ, bunu dürüstçe yansıt. Soruları DEĞİŞTİRME, yukarıdakileri kullan.
 
 2) BRANDED (itibar metriği): Marka adını İÇEREN 3 soru üret ("${brandName} güvenilir mi?" gibi). Bunlar markayı zaten bilen birinin sorduğu sorular.
 
@@ -247,25 +311,58 @@ Sadece JSON döndür, başka bir şey yazma.
     data.reviewInsights = mqData?.reviewInsights || null;
 
     // ===== 3) REKABET ANALİZİ (unbranded ile tutarlı) =====
+    // ===== 3) SIRALAMA: Unbranded frekansından hesapla (AI uydurmuyor) =====
     try {
-      const competitionResult = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [{ role: 'user', content: competitionPrompt + unbrandedSummary + '\n\nKURAL: Sıralamayı yukarıdaki gerçek unbranded ölçümle TUTARLI yap. Marka unbranded sorularda hiç görünmüyorsa, sıralamada rakiplerinin ÜSTÜNE koyma — en altlarda olmalı veya listede en sonda.' }],
-        response_format: { type: 'json_object' }
-      });
-      const competitionData = JSON.parse(competitionResult.choices[0].message.content || '{}');
+      // Her markanın kaç unbranded soruda geçtiğini say
+      const brandFreq: { [key: string]: number } = {};
+      const totalQ = mqData?.unbranded?.queries?.length || 0;
 
-      data.ranking = competitionData.ranking || [];
-      data.reasons = competitionData.reasons || [];
-      data.criteria = competitionData.criteria || [];
+      if (mqData?.unbranded?.queries) {
+        for (const q of mqData.unbranded.queries) {
+          for (const b of (q.recommendedBrands || [])) {
+            const name = b.trim();
+            if (name) brandFreq[name] = (brandFreq[name] || 0) + 1;
+          }
+        }
+      }
+
+      // Senin markan kaç soruda geçti
+      const myAppeared = parseInt(mqData?.unbranded?.appearedCount) || 0;
+      brandFreq[brandName] = myAppeared;
+
+      // Frekansa göre sırala, skor = (geçtiği soru / toplam) * 100
+      const ranking = Object.entries(brandFreq)
+        .map(([brand, freq]) => ({
+          brand,
+          score: totalQ > 0 ? Math.round((freq / totalQ) * 100) : 0,
+          appearedIn: freq,
+          me: brand.toLowerCase() === brandName.toLowerCase()
+        }))
+        .sort((a, b) => b.score - a.score);
+
+      data.ranking = ranking;
       apiStatus.competition_status = 'success';
     } catch (e: any) {
-      console.warn('Rekabet analizi başarısız:', e);
+      console.warn('Sıralama hesaplama başarısız:', e);
       data.ranking = [];
-      data.reasons = [];
-      data.criteria = [];
       apiStatus.competition_status = 'error';
       apiStatus.competition_error = e?.message || 'Bilinmeyen hata';
+    }
+
+    // ===== 3b) Sebep + Kriter (hafif ayrı çağrı, sıralamadan bağımsız) =====
+    try {
+      const reasonResult = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: competitionPrompt + unbrandedSummary + '\n\nSADECE reasons ve criteria üret. ranking ÜRETME (o ayrı hesaplanıyor). reasons unbranded gerçeğiyle tutarlı olsun — marka görünmüyorsa sebebini açıkla, kanıtsız övgü yazma.' }],
+        response_format: { type: 'json_object' }
+      });
+      const reasonData = JSON.parse(reasonResult.choices[0].message.content || '{}');
+      data.reasons = reasonData.reasons || [];
+      data.criteria = reasonData.criteria || [];
+    } catch (e: any) {
+      console.warn('Sebep/kriter başarısız:', e);
+      data.reasons = [];
+      data.criteria = [];
     }
 
     let groqScore = null;
