@@ -11,6 +11,7 @@ import Features from './components/Features';
 import FAQ from './components/FAQ';
 import SiteFooter from './components/SiteFooter';
 import { supabase } from './services/supabase';
+import LegalPages from './components/LegalPages';
 
 const ScoreChart = lazy(() => import('./components/ScoreChart'));
 
@@ -33,8 +34,7 @@ const isAdmin = session?.user?.email ? ADMIN_EMAILS.includes(session.user.email)
   const [hasFullAccess, setHasFullAccess] = useState(false);
   const [keyInput, setKeyInput] = useState('');
   const [keyError, setKeyError] = useState('');
-  const [currentView, setCurrentView] = useState<'home' | 'login' | 'register' | 'pricing' | 'admin'>('home');
-
+  const [currentView, setCurrentView] = useState<'home' | 'login' | 'register' | 'pricing' | 'admin' | 'privacy' | 'kvkk' | 'terms'>('home');
   // Kullanıcı oturumunu ve Supabase'den kredilerini çek
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -298,6 +298,10 @@ const isAdmin = session?.user?.email ? ADMIN_EMAILS.includes(session.user.email)
           <PricingView
             onSelectPlan={(plan) => { setCurrentView('home'); }}
           />
+        )}
+
+        {(currentView === 'privacy' || currentView === 'kvkk' || currentView === 'terms') && (
+          <LegalPages page={currentView} onBack={() => setCurrentView('home')} />
         )}
 
         {currentView === 'admin' && isAdmin && (
@@ -864,7 +868,7 @@ const isAdmin = session?.user?.email ? ADMIN_EMAILS.includes(session.user.email)
         )}
       </main>
 
-      <SiteFooter />
+      <SiteFooter onNavigate={(view) => setCurrentView(view)} />
     </div>
   );
 };

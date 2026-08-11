@@ -1,7 +1,7 @@
 import React from 'react';
 import { Cpu, Twitter, Linkedin, Mail } from 'lucide-react';
 
-const SiteFooter: React.FC = () => {
+const SiteFooter: React.FC<{ onNavigate?: (view: 'privacy' | 'kvkk' | 'terms') => void }> = ({ onNavigate }) => {
     return (
         <footer className="border-t border-white/5 bg-slate-950 pt-20 pb-10 mt-auto">
             <div className="max-w-6xl mx-auto px-6">
@@ -57,10 +57,10 @@ const SiteFooter: React.FC = () => {
                     <div>
                         <h4 className="font-bold mb-6 text-white">Yasal Bilgiler</h4>
                         <ul className="space-y-4 text-sm text-slate-400 overflow-hidden">
-                            <li><button onClick={() => alert('Yol haritasında inşa ediliyor.')} className="hover:text-cyan-400 transition-colors">Kullanım Koşulları</button></li>
-                            <li><button onClick={() => alert('Yol haritasında inşa ediliyor.')} className="hover:text-cyan-400 transition-colors">Gizlilik Politikası</button></li>
-                            <li><button onClick={() => alert('Yol haritasında inşa ediliyor.')} className="hover:text-cyan-400 transition-colors">Çerez Politikası</button></li>
-                            <li><button onClick={() => alert('Yol haritasında inşa ediliyor.')} className="hover:text-cyan-400 transition-colors">KVKK Aydınlatma Metni</button></li>
+                            <li><button onClick={() => onNavigate?.('terms')} className="hover:text-cyan-400 transition-colors">Kullanım Koşulları</button></li>
+                            <li><button onClick={() => onNavigate?.('privacy')} className="hover:text-cyan-400 transition-colors">Gizlilik Politikası</button></li>
+                            <li><button onClick={() => onNavigate?.('privacy')} className="hover:text-cyan-400 transition-colors">Çerez Politikası</button></li>
+                            <li><button onClick={() => onNavigate?.('kvkk')} className="hover:text-cyan-400 transition-colors">KVKK Aydınlatma Metni</button></li>
                         </ul>
                     </div>
                 </div>
