@@ -24,11 +24,11 @@ const App: React.FC = () => {
   const [loadingMsg, setLoadingMsg] = useState('Veriler taranıyor...');
   const [adminLogs, setAdminLogs] = useState<any[]>([]);
   const ADMIN_EMAILS = ['b2230765035@cs.hacettepe.edu.tr', 'omerfozen42@gmail.com'];
-const isAdmin = session?.user?.email ? ADMIN_EMAILS.includes(session.user.email) : false;
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [credits, setCredits] = useState<number>(0);
   const [loadingCredits, setLoadingCredits] = useState(false);
   const [session, setSession] = useState<any>(null);
+  const isAdmin = session?.user?.email ? ADMIN_EMAILS.includes(session.user.email) : false;
   const [pastAnalyses, setPastAnalyses] = useState<any[]>([]);
   const [selectedUrl, setSelectedUrl] = useState<string | null>(null);
   const [hasFullAccess, setHasFullAccess] = useState(false);
