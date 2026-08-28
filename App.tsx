@@ -672,7 +672,7 @@ const App: React.FC = () => {
                               <span className="font-semibold">{r.brand} {r.me && <span className="text-cyan-400 text-sm">👈 SİZ</span>}</span>
                             </div>
                             <div className="flex items-center gap-3">
-                              <span className={r.trend?.startsWith('-') ? 'text-red-400 text-sm' : 'text-green-400 text-sm'}>{r.trend?.startsWith('-') ? '▼' : '▲'} {r.trend}</span>
+                              <span className="text-slate-400 text-sm">{r.appearedIn ?? 0} soruda</span>
                               <span className="text-lg font-bold text-cyan-400">{r.score}</span>
                             </div>
                           </div>

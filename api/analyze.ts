@@ -199,6 +199,7 @@ KRİTİK KURALLAR:
 - recommendedBrands'de gerçek markalar olsun, placeholder ("Brand X") ASLA
 - verdict acımasız dürüst olsun — marka geçmiyorsa "henüz unbranded aramalarda görünmüyor" de, "öne çıkıyor" gibi yanlış olumlu yazma
 - Uydurma yüzde/istatistik verme
+- recommendedBrands SADECE gerçek MARKA/ŞİRKET isimleri içermeli. Ülke ("Norveç", "Almanya", "Çin"), şehir, coğrafi bölge veya marka olmayan hiçbir şeyi YAZMA. Bir soru coğrafi/genel bir cevap gerektiriyorsa (örn "hangi ülkelerde yaygın"), o soruyu marka önerisi olmayan bir soruyla değiştir — her soru MARKA önerisi getirecek türde olmalı.
 Sadece JSON döndür, başka bir şey yazma.
 `;
 
@@ -217,6 +218,7 @@ Genel tavsiyeler YASAK. Her öneri şu formatta olmalı:
 - Neden (AI'a etkisi)
 - Nasıl (kısa teknik adım)
 
+RAKİP KURALLARI (competitors): Sadece markanın GERÇEK, aynı kategorideki rakiplerini yaz. ASLA "rakip1", "rakip2" gibi placeholder yazma. ASLA ülke ismi ("Norveç", "Almanya", "Çin"), şehir veya marka olmayan şeyleri rakip olarak yazma. Gerçek rakip bulamıyorsan boş dizi [] bırak. Site içeriğinden markanın ne olduğunu anlayıp ona göre gerçek rakip ver.
 TAVSİYELER VERİYE DAYALI OLMALI (recommendations): Tavsiyeleri unbranded ölçüm sonucundan türet. Eğer marka kategori aramalarında görünmüyorsa, "sosyal medya hesabı açın", "anket ekleyin", "CTA kullanın" gibi JENERİK PAZARLAMA tavsiyeleri VERME. Bunun yerine AI görünürlüğünü artıracak GERÇEK adımları öner: sektörün AI tarafından alıntılanan kaynaklarında (G2, Capterra, Trustpilot, "en iyi [kategori]" karşılaştırma listeleri, sektör dizinleri) yer almak; bağımsız incelemeler/karşılaştırmalar almak; yapılandırılmış veri (schema) eklemek; otoriter sitelerden atıf almak. Yani AI modellerinin markayı öğrendiği kaynaklara girmeye odaklan.
 UYDURMA YÜZDE YASAK: "%25 daha fazla görünürlük", "%50 hız artışı", "%30 dönüşüm" gibi DAYANAKSIZ sayısal vaatler ASLA verme. Bunlar profesyonellerin anında yakaladığı uydurma istatistiklerdir. Bunun yerine niteliksel ve gerçekçi konuş: "AI modelleri markanızı daha net tanır", "arama sonuçlarında daha doğru kategorize edilirsiniz" gibi.
 
@@ -267,7 +269,7 @@ Aşağıdaki JSON formatında analiz yap:
     "GEO odaklı öneri 4",
     "GEO odaklı öneri 5"
   ],
-  "competitors": ["rakip1", "rakip2", "rakip3"],
+    "competitors": ["Gerçek rakip marka 1", "Gerçek rakip marka 2", "Gerçek rakip marka 3"],
   "analyzedPageContent": "Türkçe 1 cümle özet",
   "generatedSchema": "Bu site için schema.org JSON-LD markup kodu üret. Sitenin türüne uygun (LegalService, LocalBusiness, Organization vb.) tam ve geçerli bir JSON-LD kodu olsun. Sadece kod, açıklama yok.",
   "generatedLlmsTxt": "Bu site için llms.txt dosya içeriği üret. Markanın adı, ne yaptığı, ana sayfaları ve önemli bilgileri içeren, AI crawler'ların okuyacağı düz metin formatında bir llms.txt içeriği."
@@ -314,14 +316,20 @@ Sadece JSON döndür, başka bir şey yazma.
     // ===== 3) SIRALAMA: Unbranded frekansından hesapla (AI uydurmuyor) =====
     try {
       // Her markanın kaç unbranded soruda geçtiğini say
+            // Her markanın kaç unbranded soruda geçtiğini say
       const brandFreq: { [key: string]: number } = {};
       const totalQ = mqData?.unbranded?.queries?.length || 0;
+
+      // Marka olmayan yaygın kelimeler (ülke, bölge vb.) — sıralamaya girmesin
+      const gecersizIsimler = ['norveç', 'almanya', 'çin', 'abd', 'amerika', 'türkiye', 'fransa', 'japonya', 'ingiltere', 'hollanda', 'isveç', 'avrupa', 'asya', 'kaliforniya'];
 
       if (mqData?.unbranded?.queries) {
         for (const q of mqData.unbranded.queries) {
           for (const b of (q.recommendedBrands || [])) {
             const name = b.trim();
-            if (name) brandFreq[name] = (brandFreq[name] || 0) + 1;
+            if (name && !gecersizIsimler.includes(name.toLowerCase())) {
+              brandFreq[name] = (brandFreq[name] || 0) + 1;
+            }
           }
         }
       }
