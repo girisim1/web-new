@@ -47,6 +47,11 @@ export interface AnalysisResult {
     llmsTxt: { exists: boolean; content: string };
     agentsMd: { exists: boolean; content: string };
   };
+    aiBotCheck?: {
+    checked: boolean;
+    blockedBots: string[];
+    allowedBots: string[];
+  };
 }
 
 export enum Step {

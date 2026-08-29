@@ -107,6 +107,44 @@ const { brandName, url, userId, sector } = request.body || {};
       console.warn(`${f.path} kontrol edilemedi`);
     }
   }
+    // ===== AI BOTLARI ENGELLİ Mİ? (robots.txt analizi) =====
+  const aiBotCheck = {
+    checked: false,
+    blockedBots: [] as string[],
+    allowedBots: [] as string[],
+  };
+
+  if (fileChecks.robotsTxt.exists) {
+    // robots.txt'in TAMAMINI çek (500 karakter yetmez, bot kuralları sonda olabilir)
+    let fullRobots = fileChecks.robotsTxt.content;
+    try {
+      const res = await fetch(baseUrl + '/robots.txt', {
+        headers: { 'User-Agent': 'Mozilla/5.0' },
+        signal: AbortSignal.timeout(5000),
+      });
+      if (res.ok) fullRobots = await res.text();
+    } catch (e) { /* mevcut içerikle devam */ }
+
+    aiBotCheck.checked = true;
+    const robotsLower = fullRobots.toLowerCase();
+
+    // Kontrol edilecek AI botları
+    const aiBots = ['gptbot', 'claudebot', 'perplexitybot', 'google-extended', 'ccbot', 'anthropic-ai', 'chatgpt-user', 'oai-searchbot'];
+
+    for (const bot of aiBots) {
+      // Bu botun kendi User-agent bloğu var mı ve Disallow: / içeriyor mu?
+      const botIndex = robotsLower.indexOf('user-agent: ' + bot);
+      if (botIndex !== -1) {
+        // Bu bottan sonraki 200 karaktere bak, Disallow: / var mı
+        const afterBot = robotsLower.slice(botIndex, botIndex + 200);
+        if (afterBot.includes('disallow: /\n') || afterBot.includes('disallow: /\r') || afterBot.match(/disallow:\s*\/\s*$/m)) {
+          aiBotCheck.blockedBots.push(bot);
+        } else {
+          aiBotCheck.allowedBots.push(bot);
+        }
+      }
+    }
+  }
   // ===== İKİNCİ ANALİZ: Rekabet + Kriter + Sinyal =====
   const competitionPrompt = `
 Sen bir pazar ve rekabet analistisin.
@@ -275,6 +313,9 @@ Marka: ${brandName}
 URL: ${url}
 Tespit edilen altyapı/platform: ${platform}
 Açık kaynak dosyalar: robots.txt ${fileChecks.robotsTxt.exists ? 'VAR' : 'YOK'}, llms.txt ${fileChecks.llmsTxt.exists ? 'VAR' : 'YOK'}, agents.md ${fileChecks.agentsMd.exists ? 'VAR' : 'YOK'}
+AI botları durumu: ${aiBotCheck.checked ? (aiBotCheck.blockedBots.length > 0 ? 'ENGELLENENLER: ' + aiBotCheck.blockedBots.join(', ') : 'AI botlarına engel yok') : 'robots.txt yok, kontrol edilemedi'}
+
+AI BOT ENGELİ ÖNERİSİ: Eğer AI botları (GPTBot, ClaudeBot, PerplexityBot vb.) engellenmişse, bu KRİTİK bir sorundur — o AI modeli siteyi HİÇ okuyamaz, bu yüzden markayı asla öneremez. Engellenen bot varsa, ilk ve en öncelikli öneri "robots.txt'ten şu botların engelini kaldırın" olmalı. Engel yoksa bu konuyu övgüyle belirt.
 Site içeriği: ${pageContent || 'Çekilemedi'}
 
 DOSYA ÖNERİSİ: Yukarıdaki dosya durumuna göre öneri ver. llms.txt YOK ise "llms.txt ekleyin (AI crawler'lar markanızı doğru okusun)" öner. agents.md YOK ise "agents.md ekleyin (AI ajanlarına markanızı tanıtın)" öner. robots.txt varsa AI botlarına (GPTBot, ClaudeBot, PerplexityBot) izin verilip verilmediğini kontrol etmelerini öner. Bu dosyalar AI görünürlüğü için kritiktir.
@@ -387,6 +428,7 @@ Sadece JSON döndür, başka bir şey yazma.
       data.generatedSchema = null;
     }
     data.fileChecks = fileChecks;
+    data.aiBotCheck = aiBotCheck;
     data.reviewInsights = mqData?.reviewInsights || null;
 
     // ===== 3) REKABET ANALİZİ (unbranded ile tutarlı) =====

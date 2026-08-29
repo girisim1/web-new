@@ -642,7 +642,24 @@ const App: React.FC = () => {
                           );
                         })}
                       </div>
-                    </div>
+
+                      {/* AI Bot Engel Durumu */}
+                      {result.aiBotCheck?.checked && (
+                        <div className="mt-4">
+                          {result.aiBotCheck.blockedBots.length > 0 ? (
+                            <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30">
+                              <p className="text-red-400 font-bold text-sm mb-1">⚠️ KRİTİK: AI Botları Engellenmiş!</p>
+                              <p className="text-slate-300 text-sm">Şu AI botları robots.txt'te engellenmiş: <b>{result.aiBotCheck.blockedBots.join(', ')}</b>. Bu botlar sitenizi okuyamaz, dolayısıyla bu AI modelleri markanızı asla öneremez. Öncelikle bu engeli kaldırın.</p>
+                            </div>
+                          ) : (
+                            <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/30">
+                              <p className="text-green-400 font-bold text-sm">✓ AI botlarına engel yok</p>
+                              <p className="text-slate-400 text-xs">GPTBot, ClaudeBot gibi AI botları sitenizi okuyabiliyor.</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      </div>
                   )}
                   {result.generatedSchema && (typeof result.generatedSchema === 'string' ? result.generatedSchema.length > 20 : true) && (
                     <div className="glass p-8 rounded-3xl">
