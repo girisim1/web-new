@@ -617,7 +617,7 @@ const App: React.FC = () => {
                       ))}
                     </ul>
                   </div>
-                  {result.generatedSchema && (
+                                    {result.generatedSchema && (typeof result.generatedSchema === 'string' ? result.generatedSchema.length > 20 : true) && (
                     <div className="glass p-8 rounded-3xl">
                       <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
                         <Zap className="text-cyan-400" /> Hazır Schema.org Kodu

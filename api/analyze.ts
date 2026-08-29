@@ -298,7 +298,7 @@ Aşağıdaki JSON formatında analiz yap:
   ],
     "competitors": ["Gerçek rakip marka 1", "Gerçek rakip marka 2", "Gerçek rakip marka 3"],
   "analyzedPageContent": "Türkçe 1 cümle özet",
-  "generatedSchema": "Bu site için schema.org JSON-LD markup kodu üret. Sitenin türüne uygun (LegalService, LocalBusiness, Organization vb.) tam ve geçerli bir JSON-LD kodu olsun. Sadece kod, açıklama yok.",
+    "generatedSchema": "Bu site için TAM ve GEÇERLİ bir schema.org JSON-LD kodu üret. ZORUNLU: eksiksiz, kapanış parantezleri tam, kopyala-yapıştır çalışır olmalı. Marka türüne uygun tip seç (SaaS/yazılım için SoftwareApplication, e-ticaret için Organization veya Product, yerel işletme için LocalBusiness). En az @context, @type, name, url, description alanlarını doldur. ASLA yarım veya sadece '{' bırakma. Uydurma logo/telefon/URL koyma.",
   "generatedLlmsTxt": "Bu site için llms.txt dosya içeriği üret. Markanın adı, ne yaptığı, ana sayfaları ve önemli bilgileri içeren, AI crawler'ların okuyacağı düz metin formatında bir llms.txt içeriği."
 }
 Sadece JSON döndür, başka bir şey yazma.
@@ -338,6 +338,10 @@ Sadece JSON döndür, başka bir şey yazma.
     data.unbranded = mqData?.unbranded || null;
     data.branded = mqData?.branded || null;
     data.platform = platform;
+        // Schema bozuk/yarım geldiyse temizle (boş { gibi)
+    if (data.generatedSchema && typeof data.generatedSchema === 'string' && data.generatedSchema.trim().length < 20) {
+      data.generatedSchema = null;
+    }
     data.reviewInsights = mqData?.reviewInsights || null;
 
     // ===== 3) REKABET ANALİZİ (unbranded ile tutarlı) =====
