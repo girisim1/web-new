@@ -617,7 +617,34 @@ const App: React.FC = () => {
                       ))}
                     </ul>
                   </div>
-                                    {result.generatedSchema && (typeof result.generatedSchema === 'string' ? result.generatedSchema.length > 20 : true) && (
+                                    {/* ===== AI DOSYA KONTROLÜ ===== */}
+                  {result.fileChecks && (
+                    <div className="glass p-8 rounded-3xl">
+                      <h3 className="text-xl font-bold mb-2 flex items-center gap-2">📁 AI Dosya Kontrolü</h3>
+                      <p className="text-slate-400 text-sm mb-4">AI'ın markanızı okuması için gereken açık kaynak dosyalar</p>
+                      <div className="space-y-3">
+                        {[
+                          { key: 'robotsTxt', label: 'robots.txt', desc: 'AI botlarına erişim izni' },
+                          { key: 'llmsTxt', label: 'llms.txt', desc: 'AI için marka özeti' },
+                          { key: 'agentsMd', label: 'agents.md', desc: 'AI ajanları için tanıtım' },
+                        ].map((f) => {
+                          const check = (result.fileChecks as any)[f.key];
+                          return (
+                            <div key={f.key} className="flex items-center justify-between p-4 rounded-xl bg-slate-900/50">
+                              <div>
+                                <span className="font-semibold text-slate-200">{f.label}</span>
+                                <span className="text-slate-500 text-xs block">{f.desc}</span>
+                              </div>
+                              <span className={`px-3 py-1 rounded-full text-xs font-bold ${check?.exists ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                                {check?.exists ? '✓ Var' : '✗ Yok'}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  {result.generatedSchema && (typeof result.generatedSchema === 'string' ? result.generatedSchema.length > 20 : true) && (
                     <div className="glass p-8 rounded-3xl">
                       <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
                         <Zap className="text-cyan-400" /> Hazır Schema.org Kodu

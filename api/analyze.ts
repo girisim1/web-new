@@ -65,7 +65,48 @@ const { brandName, url, userId, sector } = request.body || {};
   } catch (e) {
     console.warn('Site fetch failed');
   }
+  
+    // ===== AÇIK KAYNAK DOSYA KONTROLÜ (robots.txt, llms.txt, agents.md) =====
+  const fileChecks = {
+    robotsTxt: { exists: false, content: '' },
+    llmsTxt: { exists: false, content: '' },
+    agentsMd: { exists: false, content: '' },
+  };
 
+  // URL'nin kök adresini bul (https://site.com/)
+  let baseUrl = url;
+  try {
+    const u = new URL(url);
+    baseUrl = `${u.protocol}//${u.hostname}`;
+  } catch (e) {
+    console.warn('URL parse hatası');
+  }
+
+  // Her dosyayı kontrol et
+  const filesToCheck: { key: 'robotsTxt' | 'llmsTxt' | 'agentsMd'; path: string }[] = [
+    { key: 'robotsTxt', path: '/robots.txt' },
+    { key: 'llmsTxt', path: '/llms.txt' },
+    { key: 'agentsMd', path: '/agents.md' },
+  ];
+
+  for (const f of filesToCheck) {
+    try {
+      const res = await fetch(baseUrl + f.path, {
+        headers: { 'User-Agent': 'Mozilla/5.0' },
+        signal: AbortSignal.timeout(5000),
+      });
+      if (res.ok) {
+        const text = await res.text();
+        // HTML değil, gerçek dosya mı kontrol et (404 sayfası HTML döner)
+        if (!text.trim().toLowerCase().startsWith('<!doctype') && !text.trim().toLowerCase().startsWith('<html')) {
+          fileChecks[f.key].exists = true;
+          fileChecks[f.key].content = text.slice(0, 500);
+        }
+      }
+    } catch (e) {
+      console.warn(`${f.path} kontrol edilemedi`);
+    }
+  }
   // ===== İKİNCİ ANALİZ: Rekabet + Kriter + Sinyal =====
   const competitionPrompt = `
 Sen bir pazar ve rekabet analistisin.
@@ -233,7 +274,10 @@ Sen GEO (Generative Engine Optimization) analistisisin.
 Marka: ${brandName}
 URL: ${url}
 Tespit edilen altyapı/platform: ${platform}
+Açık kaynak dosyalar: robots.txt ${fileChecks.robotsTxt.exists ? 'VAR' : 'YOK'}, llms.txt ${fileChecks.llmsTxt.exists ? 'VAR' : 'YOK'}, agents.md ${fileChecks.agentsMd.exists ? 'VAR' : 'YOK'}
 Site içeriği: ${pageContent || 'Çekilemedi'}
+
+DOSYA ÖNERİSİ: Yukarıdaki dosya durumuna göre öneri ver. llms.txt YOK ise "llms.txt ekleyin (AI crawler'lar markanızı doğru okusun)" öner. agents.md YOK ise "agents.md ekleyin (AI ajanlarına markanızı tanıtın)" öner. robots.txt varsa AI botlarına (GPTBot, ClaudeBot, PerplexityBot) izin verilip verilmediğini kontrol etmelerini öner. Bu dosyalar AI görünürlüğü için kritiktir.
 
 PLATFORMA ÖZEL ÖNERİ: Yukarıda tespit edilen platform bilgisine göre öneriler ver. Örneğin Shopify ise, Shopify'ın schema/metafield/taksonomi özelliklerine uygun somut öneriler ("Shopify'da ürünlerinizi standart kategori ağacına bağlayın", "metafield ile ajan açıklaması ekleyin" gibi); WordPress ise Yoast/schema eklentileri; ikas/Ticimax ise onların panel özellikleri. Platform "Özel/Bilinmiyor" ise genel öneri ver. Önerilerinde platformun adını anarak, o platformda TAM OLARAK nasıl yapılacağını belirt.
 
@@ -342,6 +386,7 @@ Sadece JSON döndür, başka bir şey yazma.
     if (data.generatedSchema && typeof data.generatedSchema === 'string' && data.generatedSchema.trim().length < 20) {
       data.generatedSchema = null;
     }
+    data.fileChecks = fileChecks;
     data.reviewInsights = mqData?.reviewInsights || null;
 
     // ===== 3) REKABET ANALİZİ (unbranded ile tutarlı) =====

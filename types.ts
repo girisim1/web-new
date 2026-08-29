@@ -42,6 +42,11 @@ export interface AnalysisResult {
     sentiment: string;
   };
   reviewInsights?: { generalSentiment: string; commonComplaints: string[]; commonPraises: string[]; sources: string };
+  fileChecks?: {
+    robotsTxt: { exists: boolean; content: string };
+    llmsTxt: { exists: boolean; content: string };
+    agentsMd: { exists: boolean; content: string };
+  };
 }
 
 export enum Step {
