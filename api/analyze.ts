@@ -28,15 +28,39 @@ const { brandName, url, userId, sector } = request.body || {};
     competition_status: 'pending', competition_error: '',
     multiquery_status: 'pending', multiquery_error: ''
   };
-  let pageContent = '';
+   let pageContent = '';
+  let rawHtml = '';
+  let platform = 'Bilinmiyor';
   try {
     const siteResponse = await fetch(url, {
       headers: { 'User-Agent': 'Mozilla/5.0' },
       signal: AbortSignal.timeout(8000),
     });
     if (siteResponse.ok) {
-      const html = await siteResponse.text();
-      pageContent = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 1500);
+      rawHtml = await siteResponse.text();
+      pageContent = rawHtml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 1500);
+
+      // ===== ALTYAPI TESPİTİ (HTML izlerinden) =====
+      const h = rawHtml.toLowerCase();
+      if (h.includes('cdn.shopify.com') || h.includes('myshopify.com') || h.includes('shopify')) {
+        platform = 'Shopify';
+      } else if (h.includes('wp-content') || h.includes('wp-includes') || h.includes('wordpress')) {
+        platform = 'WordPress';
+      } else if (h.includes('wix.com') || h.includes('_wix') || h.includes('wixstatic')) {
+        platform = 'Wix';
+      } else if (h.includes('squarespace')) {
+        platform = 'Squarespace';
+      } else if (h.includes('woocommerce')) {
+        platform = 'WooCommerce';
+      } else if (h.includes('ikas.com') || h.includes('ikas')) {
+        platform = 'ikas';
+      } else if (h.includes('ticimax')) {
+        platform = 'Ticimax';
+      } else if (h.includes('__next') || h.includes('_next/static')) {
+        platform = 'Next.js (özel geliştirme)';
+      } else {
+        platform = 'Özel/Bilinmiyor';
+      }
     }
   } catch (e) {
     console.warn('Site fetch failed');
@@ -208,7 +232,10 @@ Sadece JSON döndür, başka bir şey yazma.
 Sen GEO (Generative Engine Optimization) analistisisin.
 Marka: ${brandName}
 URL: ${url}
+Tespit edilen altyapı/platform: ${platform}
 Site içeriği: ${pageContent || 'Çekilemedi'}
+
+PLATFORMA ÖZEL ÖNERİ: Yukarıda tespit edilen platform bilgisine göre öneriler ver. Örneğin Shopify ise, Shopify'ın schema/metafield/taksonomi özelliklerine uygun somut öneriler ("Shopify'da ürünlerinizi standart kategori ağacına bağlayın", "metafield ile ajan açıklaması ekleyin" gibi); WordPress ise Yoast/schema eklentileri; ikas/Ticimax ise onların panel özellikleri. Platform "Özel/Bilinmiyor" ise genel öneri ver. Önerilerinde platformun adını anarak, o platformda TAM OLARAK nasıl yapılacağını belirt.
 
 DİL/PAZAR KURALI: Site içeriğinin diline dikkat et. Site İngilizce ise ve uluslararası pazara hitap ediyorsa, H1/başlık önerilerini İngilizce ver — Türkçeye çevirmesini önerme. Site Türkçe ise Türkçe öner. Markanın hedef pazarına uygun dilde tavsiye ver.
 
@@ -310,6 +337,7 @@ Sadece JSON döndür, başka bir şey yazma.
     // Unbranded/branded verilerini data'ya ekle
     data.unbranded = mqData?.unbranded || null;
     data.branded = mqData?.branded || null;
+    data.platform = platform;
     data.reviewInsights = mqData?.reviewInsights || null;
 
     // ===== 3) REKABET ANALİZİ (unbranded ile tutarlı) =====

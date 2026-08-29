@@ -507,6 +507,12 @@ const App: React.FC = () => {
                     </button>
                     <h2 className="text-3xl font-bold">{result.brandName} Analiz Raporu</h2>
                     <p className="text-slate-400">{result.url}</p>
+                    {result.platform && (
+                      <span className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-medium text-slate-300">
+                        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+                        Altyapı: {result.platform}
+                      </span>
+                    )}
                   </div>
                   <div className="bg-cyan-500/10 border border-cyan-500/30 px-6 py-4 rounded-2xl text-center">
                     <p className="text-xs text-cyan-400 uppercase font-bold tracking-widest mb-1">Genel AI Skoru</p>

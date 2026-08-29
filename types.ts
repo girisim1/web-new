@@ -14,6 +14,7 @@ export interface AIScore {
 export interface AnalysisResult {
   brandName: string;
   url: string;
+  platform?: string;
   score: AIScore;
   summary: string;
   weaknesses: string[];
