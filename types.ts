@@ -52,6 +52,12 @@ export interface AnalysisResult {
     blockedBots: string[];
     allowedBots: string[];
   };
+    reviewCheck?: {
+    checked: boolean;
+    hasRatingSchema: boolean;
+    hasVisibleReviews: boolean;
+    checkedProductPage: boolean;
+  };
 }
 
 export enum Step {

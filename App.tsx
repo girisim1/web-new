@@ -659,6 +659,27 @@ const App: React.FC = () => {
                           )}
                         </div>
                       )}
+                      
+                      {/* Yorum/Rating Schema Durumu */}
+                      {result.reviewCheck?.checked && (
+                        <div className="mt-4">
+                          {result.reviewCheck.hasRatingSchema ? (
+                            <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/30">
+                              <p className="text-green-400 font-bold text-sm">✓ Yorum Schema (aggregateRating) var</p>
+                              <p className="text-slate-400 text-xs">Müşteri puanlarınız AI ve arama motorları tarafından görülebiliyor.</p>
+                            </div>
+                          ) : result.reviewCheck.hasVisibleReviews ? (
+                            <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30">
+                              <p className="text-yellow-400 font-bold text-sm mb-1">⚠️ Yorumlarınız AI'a görünmüyor!</p>
+                              <p className="text-slate-300 text-sm">Sitenizde müşteri yorumları/puanları var ancak <b>aggregateRating schema</b> ile işaretlenmemiş. Bu yüzden AI ve Google puanlarınızı göremiyor. Schema eklerseniz, AI "bu markanın yüksek puanı var" diyebilir — güçlü bir güven sinyali kazanırsınız.</p>
+                            </div>
+                          ) : (
+                            <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-700">
+                              <p className="text-slate-400 text-sm">Yorum/rating tespit edilmedi. Müşteri yorumu toplamak güven sinyali için değerlidir.</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
                       </div>
                   )}
                   {result.generatedSchema && (typeof result.generatedSchema === 'string' ? result.generatedSchema.length > 20 : true) && (

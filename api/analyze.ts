@@ -113,6 +113,58 @@ const { brandName, url, userId, sector } = request.body || {};
     blockedBots: [] as string[],
     allowedBots: [] as string[],
   };
+    // ===== REVIEW/RATING SCHEMA TESPİTİ (ana sayfa + ürün sayfası) =====
+  const reviewCheck = {
+    checked: false,
+    hasRatingSchema: false,      // aggregateRating schema var mı
+    hasVisibleReviews: false,    // sayfada yorum/yıldız işareti var mı
+    checkedProductPage: false,   // ürün sayfası da kontrol edildi mi
+  };
+
+  try {
+    reviewCheck.checked = true;
+    const homeLower = rawHtml.toLowerCase();
+
+    // 1) Ana sayfada rating schema var mı?
+    if (homeLower.includes('aggregaterating') || homeLower.includes('"ratingvalue"')) {
+      reviewCheck.hasRatingSchema = true;
+    }
+    // Ana sayfada görsel yorum işareti var mı?
+    if (homeLower.includes('review') || homeLower.includes('yorum') || homeLower.includes('rating') || homeLower.includes('★') || homeLower.includes('stars')) {
+      reviewCheck.hasVisibleReviews = true;
+    }
+
+    // 2) Ana sayfada schema yoksa, bir ürün sayfası çekip orada bak
+    if (!reviewCheck.hasRatingSchema) {
+      // Ana sayfadan ürün linki bul (/products/...)
+      const productMatch = rawHtml.match(/href="([^"]*\/products\/[^"?#]+)/i);
+      if (productMatch && productMatch[1]) {
+        let productUrl = productMatch[1];
+        if (productUrl.startsWith('/')) productUrl = baseUrl + productUrl;
+
+        try {
+          const prodRes = await fetch(productUrl, {
+            headers: { 'User-Agent': 'Mozilla/5.0' },
+            signal: AbortSignal.timeout(6000),
+          });
+          if (prodRes.ok) {
+            const prodHtml = (await prodRes.text()).toLowerCase();
+            reviewCheck.checkedProductPage = true;
+            if (prodHtml.includes('aggregaterating') || prodHtml.includes('"ratingvalue"')) {
+              reviewCheck.hasRatingSchema = true;
+            }
+            if (prodHtml.includes('review') || prodHtml.includes('yorum') || prodHtml.includes('★') || prodHtml.includes('stars')) {
+              reviewCheck.hasVisibleReviews = true;
+            }
+          }
+        } catch (e) {
+          console.warn('Ürün sayfası çekilemedi');
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('Review kontrolü hatası');
+  }
 
   if (fileChecks.robotsTxt.exists) {
     // robots.txt'in TAMAMINI çek (500 karakter yetmez, bot kuralları sonda olabilir)
@@ -314,7 +366,9 @@ URL: ${url}
 Tespit edilen altyapı/platform: ${platform}
 Açık kaynak dosyalar: robots.txt ${fileChecks.robotsTxt.exists ? 'VAR' : 'YOK'}, llms.txt ${fileChecks.llmsTxt.exists ? 'VAR' : 'YOK'}, agents.md ${fileChecks.agentsMd.exists ? 'VAR' : 'YOK'}
 AI botları durumu: ${aiBotCheck.checked ? (aiBotCheck.blockedBots.length > 0 ? 'ENGELLENENLER: ' + aiBotCheck.blockedBots.join(', ') : 'AI botlarına engel yok') : 'robots.txt yok, kontrol edilemedi'}
+Yorum/Rating durumu: ${reviewCheck.checked ? (reviewCheck.hasRatingSchema ? 'aggregateRating schema VAR (AI yorumları görebiliyor)' : (reviewCheck.hasVisibleReviews ? 'Sitede yorum/rating işareti VAR ama aggregateRating schema YOK — AI yorumları GÖREMİYOR' : 'Yorum/rating tespit edilmedi')) : 'kontrol edilmedi'}
 
+YORUM/RATING ÖNERİSİ: Eğer sitede yorumlar var ama aggregateRating schema yoksa, bu KRİTİK bir fırsattır. Şu öneriyi öne çıkar: "Sitenizde müşteri yorumlarınız var ancak bunlar aggregateRating schema ile işaretlenmediği için AI ve arama motorları göremiyor. Bu schema'yı eklerseniz, AI 'bu markanın X puanı var' diyebilir — güven sinyaliniz AI'a görünür olur." Bu, markanın zaten sahip olduğu değeri (yorumları) AI'a görünür kılmakla ilgili güçlü bir kazanımdır.
 AI BOT ENGELİ ÖNERİSİ: Eğer AI botları (GPTBot, ClaudeBot, PerplexityBot vb.) engellenmişse, bu KRİTİK bir sorundur — o AI modeli siteyi HİÇ okuyamaz, bu yüzden markayı asla öneremez. Engellenen bot varsa, ilk ve en öncelikli öneri "robots.txt'ten şu botların engelini kaldırın" olmalı. Engel yoksa bu konuyu övgüyle belirt.
 Site içeriği: ${pageContent || 'Çekilemedi'}
 
@@ -429,6 +483,7 @@ Sadece JSON döndür, başka bir şey yazma.
     }
     data.fileChecks = fileChecks;
     data.aiBotCheck = aiBotCheck;
+    data.reviewCheck = reviewCheck;
     data.reviewInsights = mqData?.reviewInsights || null;
 
     // ===== 3) REKABET ANALİZİ (unbranded ile tutarlı) =====
