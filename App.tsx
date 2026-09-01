@@ -29,9 +29,13 @@ const App: React.FC = () => {
   const [loadingCredits, setLoadingCredits] = useState(false);
   const [session, setSession] = useState<any>(null);
   const isAdmin = session?.user?.email ? ADMIN_EMAILS.includes(session.user.email) : false;
+   // Plan bazlı erişim: basic ve pro tam rapor görür, free sınırlı
+  const hasBasicAccess = userPlan === 'basic' || userPlan === 'pro' || isAdmin;
+  const hasProAccess = userPlan === 'pro' || isAdmin;
   const [pastAnalyses, setPastAnalyses] = useState<any[]>([]);
   const [selectedUrl, setSelectedUrl] = useState<string | null>(null);
   const [hasFullAccess, setHasFullAccess] = useState(false);
+  const [userPlan, setUserPlan] = useState<string>('free');
   const [keyInput, setKeyInput] = useState('');
   const [keyError, setKeyError] = useState('');
   const [currentView, setCurrentView] = useState<'home' | 'login' | 'register' | 'pricing' | 'admin' | 'privacy' | 'kvkk' | 'terms'>('home');
@@ -60,18 +64,18 @@ const App: React.FC = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchCredits = async (userId: string) => {
+    const fetchCredits = async (userId: string) => {
     setLoadingCredits(true);
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('credits')
+        .select('credits, plan')
         .eq('id', userId)
         .single();
 
       if (!error && data) {
         setCredits(data.credits ?? 0);
-        if ((data.credits ?? 0) >= 5) setHasFullAccess(true);
+        setUserPlan(data.plan ?? 'free');
       }
     } catch (e) {
       console.error('Kredi bilgisi alınamadı:', e);
@@ -559,7 +563,7 @@ const App: React.FC = () => {
                   </div>
                 </div>
 
-                {hasFullAccess ? (
+                {hasBasicAccess ? (
                 <>
                 {/* Rakipler + Analiz edilen içerik */}
                 <div className="grid md:grid-cols-2 gap-8">
@@ -912,24 +916,14 @@ const App: React.FC = () => {
                     </div>
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/80 rounded-3xl z-10 p-8 text-center space-y-4">
                       <ShieldCheck className="w-12 h-12 text-cyan-400" />
-                      <h3 className="text-xl font-bold">Tam Raporu Görmek İçin Key Girin</h3>
-                      <p className="text-slate-400 text-sm">Size özel erişim keyinizi girerek tüm analiz detaylarına ulaşın.</p>
-                      <div className="flex gap-2 w-full max-w-sm">
-                        <input
-                          type="text"
-                          placeholder="Key girin..."
-                          className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-cyan-500"
-                          value={keyInput}
-                          onChange={(e) => setKeyInput(e.target.value)}
-                        />
-                        <button
-                          onClick={validateKey}
-                          className="bg-cyan-500 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-cyan-400"
-                        >
-                          Gir
-                        </button>
-                      </div>
-                      {keyError && <p className="text-red-400 text-sm">{keyError}</p>}
+                      <h3 className="text-xl font-bold">Tam Rapor Basic Pakette</h3>
+                      <p className="text-slate-400 text-sm max-w-md">Detaylı öneriler, otomatik schema/llms.txt üretimi, AI dosya kontrolü, rakip sıralaması ve daha fazlası için Basic pakete geçin.</p>
+                      <button
+                        onClick={() => setCurrentView('pricing')}
+                        className="bg-cyan-500 text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-cyan-400"
+                      >
+                        Paketlere Göz At
+                      </button>
                     </div>
                   </div>
                 )}
