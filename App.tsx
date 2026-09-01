@@ -30,12 +30,13 @@ const App: React.FC = () => {
   const [session, setSession] = useState<any>(null);
   const isAdmin = session?.user?.email ? ADMIN_EMAILS.includes(session.user.email) : false;
    // Plan bazlı erişim: basic ve pro tam rapor görür, free sınırlı
-  const hasBasicAccess = userPlan === 'basic' || userPlan === 'pro' || isAdmin;
-  const hasProAccess = userPlan === 'pro' || isAdmin;
+  
   const [pastAnalyses, setPastAnalyses] = useState<any[]>([]);
   const [selectedUrl, setSelectedUrl] = useState<string | null>(null);
   const [hasFullAccess, setHasFullAccess] = useState(false);
   const [userPlan, setUserPlan] = useState<string>('free');
+  const hasBasicAccess = userPlan === 'basic' || userPlan === 'pro' || isAdmin;
+  const hasProAccess = userPlan === 'pro' || isAdmin;
   const [keyInput, setKeyInput] = useState('');
   const [keyError, setKeyError] = useState('');
   const [currentView, setCurrentView] = useState<'home' | 'login' | 'register' | 'pricing' | 'admin' | 'privacy' | 'kvkk' | 'terms'>('home');
