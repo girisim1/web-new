@@ -301,9 +301,23 @@ const App: React.FC = () => {
           />
         )}
 
-        {currentView === 'pricing' && (
+                {currentView === 'pricing' && (
           <PricingView
-            onSelectPlan={(plan) => { setCurrentView('home'); }}
+            onSelectPlan={(plan) => {
+              const checkoutLinks: { [key: string]: string } = {
+                basic: 'https://nytome.lemonsqueezy.com/checkout/buy/3910bb9d-d147-46e4-a42b-c77b6e1207b3',
+                pro: 'https://nytome.lemonsqueezy.com/checkout/buy/6446b63e-e6b3-4536-a4e3-cb54fc4dba8d',
+              };
+              if (plan === 'free') {
+                setCurrentView('home');
+              } else if (checkoutLinks[plan]) {
+                // Kullanıcı bilgisini checkout'a ekle (ödeme sonrası kimin ödediğini bilelim)
+                const email = session?.user?.email || '';
+                const userId = session?.user?.id || '';
+                const url = `${checkoutLinks[plan]}?checkout[email]=${encodeURIComponent(email)}&checkout[custom][user_id]=${encodeURIComponent(userId)}`;
+                window.open(url, '_blank');
+              }
+            }}
           />
         )}
 
