@@ -121,11 +121,14 @@ const App: React.FC = () => {
   setKeyError('');
 };
 
-  const deductCredit = async () => {
+    const deductCredit = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return false;
 
-    const newCredits = credits - 1;
+    // Kredi 0 veya altındaysa düşme
+    if (credits <= 0) return false;
+
+    const newCredits = Math.max(0, credits - 1);
     const { error } = await supabase
       .from('profiles')
       .update({ credits: newCredits })
@@ -158,11 +161,10 @@ const App: React.FC = () => {
       setCurrentView('login');
       return;
     }
-    /*
-    if (credits <= 0) {
+    if (credits <= 0 && !isAdmin) {
       setCurrentView('pricing');
       return;
-    }*/
+    }
 
     setStep(Step.ANALYZING);
     setLoadingMsg('Site içeriği taranıyor...');
